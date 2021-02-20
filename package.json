@@ -1,0 +1,26 @@
+{
+  "name": "intellectual-systems",
+  "version": "1.0.0",
+  "description": "Sergey Petrov and Juskovets Antay (LETI 4 course 2 sem)",
+  "main": "main.js",
+  "scripts": {
+    "start": "nodemon app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://VeselAbaya:hiteno57@github.com/VeselAbaya/intellectual-systems.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/VeselAbaya/intellectual-systems/issues"
+  },
+  "homepage": "https://github.com/VeselAbaya/intellectual-systems#readme",
+  "dependencies": {
+    "dgram": "^1.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
+  }
+}
