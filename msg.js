@@ -1,14 +1,14 @@
 module.exports = {
   parseMsg(msg) { // Разбор сообщения
-    if (msg.endsWith("\u0000")) // Удаление символа в конце
-      msg = msg.substring(0, msg.length - "\u0000".length);
+    // if (msg.endsWith("\u0000")) // Удаление символа в конце
+      // msg = msg.substring(0, msg.length - "\u0000".length);
     // Разбор сообщения
-    let array = msg.match(/(\(|[-\d\.]+|[\\\"\w]+|\))/g);
-    let res = {msg, p: []}; // Результирующее сообщение
-    // Анализировать с индекса 0, результат в res
-    this.parse(array, {idx: 0}, res);
-    this.makeCmd(res); // Выделить команду
-    return res;
+    // let array = msg.match(/(\(|[-\d\.]+|[\\\"\w]+|\))/g);
+    // let res = {msg, p: []}; // Результирующее сообщение
+    // // Анализировать с индекса 0, результат в res
+    // this.parse(array, {idx: 0}, res);
+    // this.makeCmd(res); // Выделить команду
+    // return res;
   },
   parse(array, index, res) { // Разбор сообщения в скобках
     // Всегда с открывающей скобки

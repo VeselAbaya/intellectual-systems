@@ -5,4 +5,4 @@ let agent = new Agent(); // Создание экземпляра агента
 require('./socket')(agent, teamName, VERSION) //Настройка сокета
 agent.socketSend("move", `-15 0`) // Размещение игрока на поле
 
-console.log('app stated');
+console.log('app started');

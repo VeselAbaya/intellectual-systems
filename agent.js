@@ -1,4 +1,4 @@
-const Msg = require('./msg');
+const elparser = require('elparser');
 // Подключение модуля разбора сообщений от сервера
 const readline = require('readline');
 
@@ -38,12 +38,12 @@ class Agent {
   }
 
   processMsg(msg) { // Обработка сообщения
-    let data = Msg.parseMsg(msg); // Разбор сообщения
-    if (!data) throw new Error("Parse error\n" + msg);
+    const parsed = elparser.parse1(msg.replace('\0', '').trim()).toJS()
+    const [cmd, ...params] = parsed
     // Первое (hear) - начало игры
-    if (data.cmd == "hear") this.run = true;
-    if (data.cmd == "init") this.initAgent(data.p);//Инициализация
-    this.analyzeEnv(data.msg, data.cmd, data.p); // Обработка
+    if (cmd == "hear") this.run = true;
+    if (cmd == "init") this.initAgent(params); //Инициализация
+    this.analyzeEnv(cmd, params); // Обработка
   }
 
   initAgent(p) {
@@ -51,7 +51,16 @@ class Agent {
     if (p[1]) this.id = p[1]; // id игрока
   }
 
-  analyzeEnv(msg, cmd, p) { // Анализ сообщения
+  analyzeEnv(cmd, params) { // Анализ сообщения
+    console.log(`cmd: ${cmd}`)
+    console.log(`params: ${JSON.stringify(params)}`)
+
+    if (cmd !== "see") return
+    const [time, ...objects] = params
+    console.log(time)
+    objects.forEach(([name, distance, direction, distChange, dirChange, dodyFacingDir, deadFacingDir]) => {
+      console.log(Array.from(name).join(""), distance, direction, distChange, dirChange, dodyFacingDir, deadFacingDir)
+    })
   }
 
   sendCmd() {

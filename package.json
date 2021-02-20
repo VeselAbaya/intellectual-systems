@@ -18,7 +18,8 @@
   },
   "homepage": "https://github.com/VeselAbaya/intellectual-systems#readme",
   "dependencies": {
-    "dgram": "^1.0.1"
+    "dgram": "^1.0.1",
+    "elparser": "0.0.9"
   },
   "devDependencies": {
     "nodemon": "^2.0.7"
