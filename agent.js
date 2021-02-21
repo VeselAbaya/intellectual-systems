@@ -25,7 +25,7 @@ class Agent {
   msgGot(msg) {
     let data = msg.toString("utf8");
     this.processMsg(data);
-    this.sendCmd();
+    this.sendAction(this.act);
   }
 
   setSocket(socket) {
@@ -49,16 +49,23 @@ class Agent {
     if (p[1]) this.id = p[1];
   }
 
+  setAction(cmd, value) {
+    this.act = {
+      n: cmd,
+      v: value,
+    };
+  }
+
+  getAction() {
+    this.analyzeEnv();
+    return this.act || null;
+  }
+
   analyzeEnv(cmd, params) {
     const [time, ...info] = params;
     if (cmd == "hear" && info[0] == "referee" && info[1] == "kick_off_l") {
       this.run = true;
     }
-
-    this.act = {
-      n: "turn",
-      v: "5",
-    };
 
     // Анализ сообщения
     // console.log(`cmd: ${cmd}`)
@@ -71,11 +78,10 @@ class Agent {
     // })
   }
 
-  sendCmd() {
-    if (this.run && this.act) {
-      if (this.act.n === "kick") this.socketSend(this.act.n, this.act.v + " 0");
-      else this.socketSend(this.act.n, this.act.v);
-      this.act = null;
+  sendAction(action) {
+    if (this.run && action) {
+      if (action.n === "kick") this.socketSend(action.n, action.v + " 0");
+      else this.socketSend(action.n, action.v);
     }
   }
 }
