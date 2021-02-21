@@ -1,4 +1,6 @@
 const elparser = require("elparser");
+const { calcPlayerCoordsByFlags } = require("./utils");
+
 // const readline = require("readline");
 class Agent {
   constructor() {
@@ -65,17 +67,34 @@ class Agent {
     const [time, ...info] = params;
     if (cmd == "hear" && info[0] == "referee" && info[1] == "kick_off_l") {
       this.run = true;
-    }
+    } else if (cmd == "see") {
+      let objects = info.map(
+        ([
+          name,
+          distance,
+          direction,
+          distChange,
+          dirChange,
+          bodyFacingDir,
+          deadFacingDir,
+        ]) => {
+          return {
+            name: name,
+            distance: distance,
+            direction: direction,
+            distChange: distChange,
+            dirChange: dirChange,
+            bodyFacingDir: bodyFacingDir,
+            deadFacingDir: deadFacingDir,
+          };
+        }
+      );
 
-    // Анализ сообщения
-    // console.log(`cmd: ${cmd}`)
-    // console.log(`params: ${JSON.stringify(params)}`)
-    // if (cmd !== "see") return
-    // const [time, ...objects] = params
-    // console.log(time)
-    // objects.forEach(([name, distance, direction, distChange, dirChange, dodyFacingDir, deadFacingDir]) => {
-    //   console.log(Array.from(name).join(""), distance, direction, distChange, dirChange, dodyFacingDir, deadFacingDir)
-    // })
+      const flags = objects.filter((o) => o.name[0] == "f");
+
+      const { px, py } = calcPlayerCoordsByFlags(flags);
+      console.log(`px: ${px} py: ${py}`);
+    }
   }
 
   sendAction(action) {
