@@ -1,19 +1,24 @@
-const dgram = require('dgram'); // Модуль для работы с UDP
+const dgram = require("dgram");
+const PORT = 6000;
+const HOST = "localhost";
+
 module.exports = function (agent, teamName, version) {
   // Создание сокета
   const socket = dgram.createSocket({
-    type: 'udp4',
-    reuseAddr: true
+    type: "udp4",
+    reuseAddr: true,
   });
-  agent.setSocket(socket); // Задание сокета для агента
-  socket.on('message', (msg, info) => {
-    agent.msgGot(msg); // Обработка полученного сообщения
+
+  socket.on("message", (msg, info) => {
+    agent.msgGot(msg);
   });
-  socket.sendMsg = function (msg) { // Отправка сообщения серверу
-    socket.send(Buffer.from(msg), 6000, 'localhost', (err, bytes) => {
+
+  socket.sendMsg = function (msg) {
+    socket.send(Buffer.from(msg), PORT, HOST, (err, bytes) => {
       if (err) throw err;
     });
   };
-  // Инициализация игрока на сервере (без параметра goalie)
+
+  agent.setSocket(socket);
   socket.sendMsg(`(init ${teamName} (version ${version}))`);
 };

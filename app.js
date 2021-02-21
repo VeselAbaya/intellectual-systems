@@ -1,8 +1,11 @@
-const Agent = require('./agent') // Импорт агента
-const VERSION = 7 // Версия сервера
-let teamName = "teamA" // Имя команды
-let agent = new Agent(); // Создание экземпляра агента
-require('./socket')(agent, teamName, VERSION) //Настройка сокета
-agent.socketSend("move", `-15 0`) // Размещение игрока на поле
+const Agent = require("./agent");
+const VERSION = 7;
+const teamName = "teamA";
+const agent = new Agent();
+require("./socket")(agent, teamName, VERSION);
 
-console.log('app started');
+const [x, y] = process.argv.slice(2);
+
+setTimeout(() => {
+  agent.socketSend("move", `${x || -15} ${y || 0}`);
+}, 100);
