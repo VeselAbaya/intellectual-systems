@@ -1,13 +1,6 @@
 const { Flags, fieldBorders } = require("./constants");
 
-const calcPlayerCoordsByFlags = (flagsSeeData) => {
-  const flagsData = flagsSeeData.map((f) => {
-    const fCoords = Flags[f.name.join("")];
-    fCoords.d = f.distance;
-    fCoords.dir = f.direction;
-    return fCoords;
-  });
-
+const calcPlayerCoordsByFlags = (flagsData) => {
   const flags = [];
   const coordsCount = new Set();
 

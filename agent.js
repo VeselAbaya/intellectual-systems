@@ -1,4 +1,5 @@
 const elparser = require("elparser");
+const { Flags } = require("./constants");
 const { calcPlayerCoordsByFlags } = require("./utils");
 
 // const readline = require("readline");
@@ -90,7 +91,13 @@ class Agent {
         }
       );
 
-      const flags = objects.filter((o) => o.name[0] == "f");
+      let flags = objects.filter((o) => o.name[0] == "f");
+      flags = flags.map((f) => {
+        const fCoords = Flags[f.name.join("")];
+        fCoords.d = f.distance;
+        fCoords.dir = f.direction;
+        return fCoords;
+      });
 
       const { px, py } = calcPlayerCoordsByFlags(flags);
       console.log(`px: ${px} py: ${py}`);
