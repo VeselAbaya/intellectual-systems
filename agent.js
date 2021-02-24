@@ -102,8 +102,8 @@ class Agent {
         switch (o.name[0]) {
           case "f":
             const fCoords = Flags[o.name.join("")];
-            fCoords.d = o.distance;
-            fCoords.dir = o.direction;
+            fCoords.distance = o.distance;
+            fCoords.distance = o.distance;
             flagsData.push(fCoords);
             break;
           case "p":
@@ -126,7 +126,6 @@ class Agent {
           baseFlags.push(f);
         }
       }
-
       this.pos = calcPlayerCoordsByFlags(baseFlags);
       console.log(`px: ${this.pos.px} py: ${this.pos.py}`);
     }
