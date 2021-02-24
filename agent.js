@@ -8,6 +8,10 @@ class Agent {
     this.position = "l";
     this.run = false;
     this.act = null;
+    this.pos = {
+      px: undefined,
+      py: undefined,
+    };
     // this.rl = readline.createInterface({
     //   // Чтение консоли
     //   input: process.stdin,
@@ -91,16 +95,27 @@ class Agent {
         }
       );
 
-      let flags = objects.filter((o) => o.name[0] == "f");
-      flags = flags.map((f) => {
-        const fCoords = Flags[f.name.join("")];
-        fCoords.d = f.distance;
-        fCoords.dir = f.direction;
-        return fCoords;
+      let flags = [];
+      let otherPlayers = [];
+
+      objects.forEach((o) => {
+        switch (o.name[0]) {
+          case "f":
+            const fCoords = Flags[o.name.join("")];
+            fCoords.d = o.distance;
+            fCoords.dir = o.direction;
+            flags.push(fCoords);
+            break;
+          case "p":
+            otherPlayers.push(o);
+            break;
+          default:
+            break;
+        }
       });
 
-      const { px, py } = calcPlayerCoordsByFlags(flags);
-      console.log(`px: ${px} py: ${py}`);
+      this.pos = calcPlayerCoordsByFlags(flags);
+      console.log(`px: ${this.pos.px} py: ${this.pos.py}`);
     }
   }
 
