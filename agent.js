@@ -1,6 +1,6 @@
 const elparser = require("elparser");
 const { Flags } = require("./constants");
-const { calcPlayerCoordsByFlags } = require("./utils");
+const { calcPlayerCoordsByFlags, calcOtherDistance2 } = require("./utils");
 
 // const readline = require("readline");
 class Agent {
@@ -103,7 +103,7 @@ class Agent {
           case "f":
             const fCoords = Flags[o.name.join("")];
             fCoords.distance = o.distance;
-            fCoords.distance = o.distance;
+            fCoords.direction = o.direction;
             flagsData.push(fCoords);
             break;
           case "p":
