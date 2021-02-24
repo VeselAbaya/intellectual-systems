@@ -95,7 +95,7 @@ class Agent {
         }
       );
 
-      let flags = [];
+      let flagsData = [];
       let otherPlayers = [];
 
       objects.forEach((o) => {
@@ -104,7 +104,7 @@ class Agent {
             const fCoords = Flags[o.name.join("")];
             fCoords.d = o.distance;
             fCoords.dir = o.direction;
-            flags.push(fCoords);
+            flagsData.push(fCoords);
             break;
           case "p":
             otherPlayers.push(o);
@@ -114,7 +114,20 @@ class Agent {
         }
       });
 
-      this.pos = calcPlayerCoordsByFlags(flags);
+      const baseFlags = [];
+      const coordsCount = new Set();
+
+      //take 3 or less flags as base
+      for (let f of flagsData) {
+        if (baseFlags.length >= 3) break;
+        if (!coordsCount.has(f.x) && !coordsCount.has(f.y)) {
+          coordsCount.add(f.x);
+          coordsCount.add(f.y);
+          baseFlags.push(f);
+        }
+      }
+
+      this.pos = calcPlayerCoordsByFlags(baseFlags);
       console.log(`px: ${this.pos.px} py: ${this.pos.py}`);
     }
   }

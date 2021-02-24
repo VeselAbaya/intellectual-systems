@@ -1,23 +1,13 @@
 const { Flags, fieldBorders } = require("./constants");
 
-const calcPlayerCoordsByFlags = (flagsData) => {
-  const flags = [];
-  const coordsCount = new Set();
+const toRad = (angle) => (angle * Math.PI) / 180;
 
-  for (f of flagsData) {
-    if (flags.length >= 3) break;
-    if (!coordsCount.has(f.x) && !coordsCount.has(f.y)) {
-      coordsCount.add(f.x);
-      coordsCount.add(f.y);
-      flags.push(f);
-    }
-  }
-
-  if (flags.length < 2) {
+const calcPlayerCoordsByFlags = (baseFlags) => {
+  if (baseFlags.length < 2) {
     return {};
   }
 
-  const [f1, f2, f3] = flags;
+  const [f1, f2, f3] = baseFlags;
 
   const alpha1 = (f1.x - f2.x) / (f2.y - f1.y);
   const beta1 =
@@ -75,6 +65,16 @@ const calcPlayerCoordsByFlags = (flagsData) => {
   };
 };
 
+const calcOtherDistance2 = (angleA, angleB, distA, distB) => {
+  // if player sees A and B, calc distance from A to B
+  return (
+    distA ** 2 +
+    distB ** 2 -
+    2 * distA * distB * Math.cos(Math.abs(toRad(angleA) - toRad(angleB)))
+  );
+};
+
 module.exports = {
   calcPlayerCoordsByFlags,
+  calcOtherDistance2,
 };
