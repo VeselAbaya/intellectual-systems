@@ -1,10 +1,11 @@
 const elparser = require("elparser");
 const { Flags } = require("./constants");
 const { calcPlayerCoordsByFlags, calcOtherDistance2 } = require("./utils");
-
 // const readline = require("readline");
+
 class Agent {
-  constructor() {
+  constructor({debug} = {debug: false}) {
+    this._debug = debug;
     this.position = "l";
     this.run = false;
     this.act = null;
@@ -12,6 +13,7 @@ class Agent {
       px: undefined,
       py: undefined,
     };
+    this.otherPlayersCoords = [];
     // this.rl = readline.createInterface({
     //   // Чтение консоли
     //   input: process.stdin,
@@ -82,23 +84,21 @@ class Agent {
           dirChange,
           bodyFacingDir,
           deadFacingDir,
-        ]) => {
-          return {
-            name: name,
-            distance: distance,
-            direction: direction,
-            distChange: distChange,
-            dirChange: dirChange,
-            bodyFacingDir: bodyFacingDir,
-            deadFacingDir: deadFacingDir,
-          };
-        }
+        ]) => ({
+          name,
+          distance,
+          direction,
+          distChange,
+          dirChange,
+          bodyFacingDir,
+          deadFacingDir,
+        })
       );
 
-      let flagsData = [];
-      let otherPlayers = [];
+      const flagsData = [];
+      const otherPlayers = [];
 
-      objects.forEach((o) => {
+      objects.forEach(o => {
         switch (o.name[0]) {
           case "f":
             const fCoords = Flags[o.name.join("")];
@@ -127,7 +127,24 @@ class Agent {
         }
       }
       this.pos = calcPlayerCoordsByFlags(baseFlags);
-      console.log(`px: ${this.pos.px} py: ${this.pos.py}`);
+      this._log(`px: ${this.pos.px} py: ${this.pos.py}`);
+
+      this.otherPlayersCoords = [];
+      otherPlayers.forEach(player => {
+        const flagPlayerDistance = calcOtherDistance2(
+          baseFlags[0].direction,
+          player.direction,
+          baseFlags[0].distance,
+          player.distance
+        );
+        this._log(flagPlayerDistance);
+        this._log(player);
+        this.otherPlayersCoords.push(calcPlayerCoordsByFlags([
+          {x: this.pos.px,    y: this.pos.py,    distance: player.distance},
+          {x: baseFlags[0].x, y: baseFlags[0].y, distance: flagPlayerDistance}
+        ]));
+      });
+      this._log(this.otherPlayersCoords);
     }
   }
 
@@ -136,6 +153,10 @@ class Agent {
       if (action.n === "kick") this.socketSend(action.n, action.v + " 0");
       else this.socketSend(action.n, action.v);
     }
+  }
+
+  _log(...args) {
+    this._debug && console.log(...args);
   }
 }
 
