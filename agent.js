@@ -4,7 +4,7 @@ const { calcPlayerCoordsByFlags, calcOtherDistance2 } = require("./utils");
 // const readline = require("readline");
 
 class Agent {
-  constructor({debug} = {debug: false}) {
+  constructor({ debug } = { debug: false }) {
     this._debug = debug;
     this.position = "l";
     this.run = false;
@@ -98,7 +98,7 @@ class Agent {
       const flagsData = [];
       const otherPlayers = [];
 
-      objects.forEach(o => {
+      objects.forEach((o) => {
         switch (o.name[0]) {
           case "f":
             const fCoords = Flags[o.name.join("")];
@@ -130,19 +130,25 @@ class Agent {
       this._log(`px: ${this.pos.px} py: ${this.pos.py}`);
 
       this.otherPlayersCoords = [];
-      otherPlayers.forEach(player => {
+      otherPlayers.forEach((player) => {
         const flagPlayerDistance = calcOtherDistance2(
           baseFlags[0].direction,
           player.direction,
           baseFlags[0].distance,
           player.distance
         );
-        this._log(flagPlayerDistance);
-        this._log(player);
-        this.otherPlayersCoords.push(calcPlayerCoordsByFlags([
-          {x: this.pos.px,    y: this.pos.py,    distance: player.distance},
-          {x: baseFlags[0].x, y: baseFlags[0].y, distance: flagPlayerDistance}
-        ]));
+        // this._log(flagPlayerDistance);
+        // this._log(player);
+        const otherPlayerPos = calcPlayerCoordsByFlags([
+          { x: this.pos.px, y: this.pos.py, distance: player.distance },
+          {
+            x: baseFlags[0].x,
+            y: baseFlags[0].y,
+            distance: flagPlayerDistance,
+          },
+        ]);
+        otherPlayerPos.name = player.name.join("");
+        this.otherPlayersCoords.push(otherPlayerPos);
       });
       this._log(this.otherPlayersCoords);
     }
