@@ -79,8 +79,8 @@ const calcOtherDistance2 = (angleA, angleB, distA, distB) => {
   // if player sees A and B, calc distance from A to B
   return Math.sqrt(
     distA ** 2 +
-    distB ** 2 -
-    2 * distA * distB * Math.cos(Math.abs(toRad(angleA) - toRad(angleB)))
+      distB ** 2 -
+      2 * distA * distB * Math.cos(Math.abs(toRad(angleA) - toRad(angleB)))
   );
 };
 

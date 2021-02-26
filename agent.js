@@ -127,26 +127,38 @@ class Agent {
         }
       }
       this.pos = calcPlayerCoordsByFlags(baseFlags);
+
+      this.pos.px = +this.pos.px.toFixed(2);
+      this.pos.py = +this.pos.py.toFixed(2);
+
       this._log(`px: ${this.pos.px} py: ${this.pos.py}`);
 
       this.otherPlayersCoords = [];
       otherPlayers.forEach((player) => {
-        const flagPlayerDistance = calcOtherDistance2(
-          baseFlags[0].direction,
-          player.direction,
-          baseFlags[0].distance,
-          player.distance
-        );
-        // this._log(flagPlayerDistance);
-        // this._log(player);
         const otherPlayerPos = calcPlayerCoordsByFlags([
           { x: this.pos.px, y: this.pos.py, distance: player.distance },
           {
             x: baseFlags[0].x,
             y: baseFlags[0].y,
-            distance: flagPlayerDistance,
+            distance: calcOtherDistance2(
+              baseFlags[0].direction,
+              player.direction,
+              baseFlags[0].distance,
+              player.distance
+            ),
+          },
+          {
+            x: baseFlags[1].x,
+            y: baseFlags[1].y,
+            distance: calcOtherDistance2(
+              baseFlags[1].direction,
+              player.direction,
+              baseFlags[1].distance,
+              player.distance
+            ),
           },
         ]);
+
         otherPlayerPos.name = player.name.join("");
         this.otherPlayersCoords.push(otherPlayerPos);
       });
