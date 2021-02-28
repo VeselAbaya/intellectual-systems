@@ -33,8 +33,8 @@ const calcPlayerCoordsByFlags = (baseFlags) => {
 
     const px = (beta2 - beta1) / (alpha1 - alpha2);
     return {
-      px: px,
-      py: -1 * (alpha1 * px + beta1),
+      x: px,
+      y: -1 * (alpha1 * px + beta1),
     };
   }
   // by 2 flags
@@ -63,15 +63,15 @@ const calcPlayerCoordsByFlags = (baseFlags) => {
       y <= fieldBorders.top
     ) {
       return {
-        px: x,
-        py: -y,
+        x: x,
+        y: -y,
       };
     }
   }
 
   return {
-    px: undefined,
-    py: undefined,
+    x: undefined,
+    y: undefined,
   };
 };
 

@@ -1,19 +1,19 @@
 const elparser = require("elparser");
 const { Flags } = require("./constants");
+const Controller = require("./controller");
 const { calcPlayerCoordsByFlags, calcOtherDistance2 } = require("./utils");
 // const readline = require("readline");
 
 class Agent {
   constructor({ debug } = { debug: false }) {
     this._debug = debug;
-    this.position = "l";
+    this.side = "l";
     this.run = false;
     this.act = null;
     this.pos = {
-      px: undefined,
-      py: undefined,
+      x: undefined,
+      y: undefined,
     };
-    this.otherPlayersCoords = [];
     // this.rl = readline.createInterface({
     //   // Чтение консоли
     //   input: process.stdin,
@@ -29,6 +29,11 @@ class Agent {
     //     if ("s" == input) this.act = { n: "kick", v: 100 };
     //   }
     // });
+  }
+
+  setController(controller) {
+    this.controller = controller;
+    this.controller.setAgent(this);
   }
 
   msgGot(msg) {
@@ -50,127 +55,30 @@ class Agent {
     const [cmd, ...params] = parsedMsg;
 
     if (cmd == "init") this.initAgent(params);
-    this.analyzeEnv(cmd, params);
+    this.controller.analyzeEnv(cmd, params);
   }
 
   initAgent(p) {
-    if (p[0] == "r") this.position = "r";
+    if (p[0] == "r") this.side = "r";
     if (p[1]) this.id = p[1];
   }
 
-  setAction(cmd, value) {
-    this.act = {
-      n: cmd,
-      v: value,
-    };
-  }
-
-  getAction() {
-    this.analyzeEnv();
-    return this.act || null;
-  }
-
-  analyzeEnv(cmd, params) {
-    const [time, ...info] = params;
-    if (cmd == "hear" && info[0] == "referee" && info[1] == "kick_off_l") {
-      this.run = true;
-    } else if (cmd == "see") {
-      let objects = info.map(
-        ([
-          name,
-          distance,
-          direction,
-          distChange,
-          dirChange,
-          bodyFacingDir,
-          deadFacingDir,
-        ]) => ({
-          name,
-          distance,
-          direction,
-          distChange,
-          dirChange,
-          bodyFacingDir,
-          deadFacingDir,
-        })
-      );
-
-      const flagsData = [];
-      const otherPlayers = [];
-
-      objects.forEach((o) => {
-        switch (o.name[0]) {
-          case "f":
-            const fCoords = Flags[o.name.join("")];
-            fCoords.distance = o.distance;
-            fCoords.direction = o.direction;
-            flagsData.push(fCoords);
-            break;
-          case "p":
-            otherPlayers.push(o);
-            break;
-          default:
-            break;
-        }
-      });
-
-      const baseFlags = [];
-      const coordsCount = new Set();
-
-      //take 3 or less flags as base
-      for (let f of flagsData) {
-        if (baseFlags.length >= 3) break;
-        if (!coordsCount.has(f.x) && !coordsCount.has(f.y)) {
-          coordsCount.add(f.x);
-          coordsCount.add(f.y);
-          baseFlags.push(f);
-        }
-      }
-      this.pos = calcPlayerCoordsByFlags(baseFlags);
-
-      this.pos.px = +this.pos.px.toFixed(2);
-      this.pos.py = +this.pos.py.toFixed(2);
-
-      this._log(`px: ${this.pos.px} py: ${this.pos.py}`);
-
-      this.otherPlayersCoords = [];
-      otherPlayers.forEach((player) => {
-        const otherPlayerPos = calcPlayerCoordsByFlags([
-          { x: this.pos.px, y: this.pos.py, distance: player.distance },
-          {
-            x: baseFlags[0].x,
-            y: baseFlags[0].y,
-            distance: calcOtherDistance2(
-              baseFlags[0].direction,
-              player.direction,
-              baseFlags[0].distance,
-              player.distance
-            ),
-          },
-          {
-            x: baseFlags[1].x,
-            y: baseFlags[1].y,
-            distance: calcOtherDistance2(
-              baseFlags[1].direction,
-              player.direction,
-              baseFlags[1].distance,
-              player.distance
-            ),
-          },
-        ]);
-
-        otherPlayerPos.name = player.name.join("");
-        this.otherPlayersCoords.push(otherPlayerPos);
-      });
-      this._log(this.otherPlayersCoords);
-    }
-  }
+  // setAction(name, params) {
+  //   this.act = {
+  //     n: name,
+  //     v: params,
+  //   };
+  // }
 
   sendAction(action) {
     if (this.run && action) {
       if (action.n === "kick") this.socketSend(action.n, action.v + " 0");
       else this.socketSend(action.n, action.v);
     }
+  }
+
+  doNothing() {
+    this.act = null;
   }
 
   _log(...args) {

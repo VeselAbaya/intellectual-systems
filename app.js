@@ -1,17 +1,28 @@
 const Agent = require("./agent");
+const Controller = require("./controller");
 const initAgent = require("./socket");
 const VERSION = 7;
 
+const [teamName, x, y] = process.argv.slice(2);
+
 const agent1 = new Agent({ debug: true });
-const agent2 = new Agent();
 
-const [teamName, x, y, turnAngle] = process.argv.slice(2);
+const initPos = {
+  x: x || -15,
+  y: y || 0,
+};
 
-initAgent(agent1, teamName, VERSION);
-initAgent(agent2, teamName, VERSION);
+const targets = [
+  { act: "flag", name: "frb" },
+  { act: "flag", name: "gl" },
+  { act: "flag", name: "fc" },
+  { act: "kick", name: "b", goal: "gr" },
+];
+
+const controller = new Controller(initPos, targets);
+agent1.setController(controller);
+initAgent(agent1, teamName || "a", VERSION);
 
 setTimeout(() => {
-  agent1.socketSend("move", `${x || -15} ${y || 0}`);
-  agent1.setAction("turn", turnAngle || 5);
-  agent2.socketSend("move", `-10 -10`);
-}, 100);
+  controller.restartAgentPosition();
+}, 500);
