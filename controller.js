@@ -252,7 +252,7 @@ module.exports = class Controller {
       case TargetState.adjust:
         this.agent.act = {
           n: "turn",
-          v: targetData.direction / 2,
+          v: targetData.direction / 4,
         };
         break;
       case TargetState.seek:
@@ -278,7 +278,6 @@ module.exports = class Controller {
           const targetGates = this.gatesData.find((g) =>
             g.name.join("").startsWith(targetInfo.goal)
           );
-          // console.log(this.gatesData, targetGatesName, targetGates);
           if (!targetGates) {
             this.agent.act = {
               n: "kick",
