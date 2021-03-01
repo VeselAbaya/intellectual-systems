@@ -1,17 +1,28 @@
-const { Flags } = require("./constants");
-const { calcPlayerCoordsByFlags, calcOtherDistance2 } = require("./utils");
+const Victor = require("victor");
+const { Flags, distanceLimits } = require("./constants");
+const {
+  calcObjectCoordsByFlags,
+  calcСosTheorem,
+  toDeg,
+  kinematicAngularSeek,
+} = require("./utils");
 
-const TargetState = Object.freeze({ lookup: 1, seek: 2, done: 3 });
+const TargetState = Object.freeze({ find: 1, adjust: 2, seek: 3, done: 5 });
 
 module.exports = class Controller {
-  constructor(initPos = {}, targets = []) {
+  constructor(targets = []) {
     this.targets = targets;
     this.targetIdx = 0;
-    this.initPos = initPos;
+    this.initTargetsLen = targets.length;
     this.agent = undefined;
     this.seenObjects = [];
-    this.speed = 5;
-    this.reachDist = 3;
+    this.flagsData = [];
+    this.gatesData = [];
+    this.otherPlayers = [];
+    this.ballData = [];
+
+    this.senseBody = {};
+
     this.targetState = TargetState.lookup;
   }
 
@@ -20,97 +31,75 @@ module.exports = class Controller {
   }
 
   restartAgentPosition() {
-    this.agent.pos = this.initPos;
-    this.agent.socketSend("move", `${this.agent.pos.x} ${this.agent.pos.y}`);
+    this.agent.socketSend(
+      "move",
+      `${this.agent.initPos.x} ${this.agent.initPos.y}`
+    );
+    this.agent.pos = Object.assign({}, this.agent.initPos);
     this.targetIdx = 0;
+    this.targets = this.targets.slice(0, this.initTargetsLen);
   }
 
-  calcCoords(seenObjects) {
-    const flagsData = [];
-    const otherPlayers = [];
-
+  parseSeenObjects(seenObjects) {
+    let flags = [];
+    let otherPlayers = [];
+    let gates = [];
+    let ball = {};
     seenObjects.forEach((o) => {
       switch (o.name[0]) {
         case "f":
           const fCoords = Flags[o.name.join("")];
-          fCoords.distance = o.distance;
-          fCoords.direction = o.direction;
-          flagsData.push(fCoords);
+          o.x = fCoords.x;
+          o.y = fCoords.y;
+          flags.push(o);
           break;
         case "p":
           otherPlayers.push(o);
+          break;
+        case "b":
+          ball = o;
+          break;
+        case "g":
+          gates.push(o);
           break;
         default:
           break;
       }
     });
 
-    const baseFlags = [];
+    return [flags, otherPlayers, gates, ball];
+  }
+
+  takeThreeFlags(flagsData) {
+    const threeFlags = [];
     const coordsCount = new Set();
 
     //take 3 or less flags as base
     for (let f of flagsData) {
-      if (baseFlags.length >= 3) break;
+      if (threeFlags.length >= 3) break;
       if (!coordsCount.has(f.x) && !coordsCount.has(f.y)) {
         coordsCount.add(f.x);
         coordsCount.add(f.y);
-        baseFlags.push(f);
+        threeFlags.push(f);
       }
     }
-
-    this.agent.pos = calcPlayerCoordsByFlags(baseFlags);
-    this.agent._log(`px: ${this.agent.pos.x} py: ${this.agent.pos.y}`);
-
-    //   this.otherPlayersCoords = [];
-    //   otherPlayers.forEach((player) => {
-    //     const otherPlayerPos = calcPlayerCoordsByFlags([
-    //       {
-    //         x: this.agent.pos.x,
-    //         y: this.agent.pos.y,
-    //         distance: player.distance,
-    //       },
-    //       {
-    //         x: baseFlags[0].x,
-    //         y: baseFlags[0].y,
-    //         distance: calcOtherDistance2(
-    //           baseFlags[0].direction,
-    //           player.direction,
-    //           baseFlags[0].distance,
-    //           player.distance
-    //         ),
-    //       },
-    //       {
-    //         x: baseFlags[1].x,
-    //         y: baseFlags[1].y,
-    //         distance: calcOtherDistance2(
-    //           baseFlags[1].direction,
-    //           player.direction,
-    //           baseFlags[1].distance,
-    //           player.distance
-    //         ),
-    //       },
-    //     ]);
-
-    // otherPlayerPos.name = player.name.join("");
-    // this.otherPlayersCoords.push(otherPlayerPos);
-    //   });
-    //   this.agent._log(this.otherPlayersCoords);
+    return threeFlags;
   }
 
   analyzeEnv(cmd, params) {
     const [time, ...info] = params;
-    if (cmd == "hear" && info[0] == "referee") {
+
+    if (cmd == "init") {
+      this.agent.initAgent(params);
+      this.restartAgentPosition();
+      return;
+    } else if (cmd == "hear" && info[0] == "referee") {
       if (info[1] == "play_on") this.agent.run = true;
       else if (info[1].startsWith("goal")) {
         this.agent.run = false;
-        setTimeout(() => {
-          this.restartAgentPosition();
-        }, 500);
+        setTimeout(() => this.restartAgentPosition(), 500);
       }
-      return;
-    }
-
-    if (cmd == "see") {
+    } else if (cmd == "see") {
       this.seenObjects = info.map(
         ([
           name,
@@ -130,51 +119,189 @@ module.exports = class Controller {
           deadFacingDir,
         })
       );
-      this.calcCoords(this.seenObjects);
+    } else if (cmd == "sense_body") {
+      const [
+        [viewMode, ...viewArgs],
+        [stamina, staminaEffort],
+        [speed, ...speedArgs],
+        [headAngle, hAngle],
+        ...counters
+      ] = info;
+
+      this.senseBody = {
+        viewMode: viewArgs,
+        stamina: staminaEffort,
+        speed: speedArgs,
+        headAngle: hAngle,
+        counters: counters,
+      };
+      // const [speedValue, angle] = speedArgs;
     }
-    if (!this.targets || this.targetIdx >= this.targets.length) return;
 
-    const currentTarget = this.targets[this.targetIdx];
-    const targetData = this.seenObjects.find((o) =>
-      o.name.join("").startsWith(currentTarget.name)
+    if (
+      !this.senseBody ||
+      Object.keys(this.senseBody).length === 0 ||
+      !this.seenObjects ||
+      this.seenObjects.length === 0
+    ) {
+      return;
+    }
+
+    const [
+      flagsData,
+      otherPlayers,
+      gatesData,
+      ballData,
+    ] = this.parseSeenObjects(this.seenObjects);
+
+    this.flagsData = flagsData;
+    this.otherPlayers = otherPlayers;
+    this.gatesData = gatesData;
+    this.ballData = ballData;
+
+    const threeFlags = this.takeThreeFlags(this.flagsData);
+    this.agent.pos = calcObjectCoordsByFlags(threeFlags);
+    // this.otherPlayers = [];
+    // otherPlayers.forEach((player) => {
+    //   const otherPlayerPos = calcObjectCoordsByFlags([
+    //     {
+    //       x: this.agent.pos.x,
+    //       y: this.agent.pos.y,
+    //       distance: player.distance,
+    //     },
+    //     {
+    //       x: threeFlags[0].x,
+    //       y: threeFlags[0].y,
+    //       distance: calcСosTheorem(
+    //         threeFlags[0].direction,
+    //         player.direction,
+    //         threeFlags[0].distance,
+    //         player.distance
+    //       ),
+    //     },
+    //     {
+    //       x: threeFlags[1].x,
+    //       y: threeFlags[1].y,
+    //       distance: calcСosTheorem(
+    //         threeFlags[1].direction,
+    //         player.direction,
+    //         threeFlags[1].distance,
+    //         player.distance
+    //       ),
+    //     },
+    //   ]);
+    //   otherPlayerPos.name = player.name.join("");
+    //   this.otherPlayers.push(otherPlayerPos);
+    // });
+    // const ballPos = calcObjectCoordsByFlags([
+    //   {
+    //     x: this.agent.pos.x,
+    //     y: this.agent.pos.y,
+    //     distance: ballData.distance,
+    //   },
+    //   {
+    //     x: threeFlags[2].x,
+    //     y: threeFlags[2].y,
+    //     distance: calcСosTheorem(
+    //       threeFlags[2].direction,
+    //       ballData.direction,
+    //       threeFlags[2].distance,
+    //       ballData.distance
+    //     ),
+    //   },
+    //   {
+    //     x: threeFlags[1].x,
+    //     y: threeFlags[1].y,
+    //     distance: calcСosTheorem(
+    //       threeFlags[1].direction,
+    //       ballData.direction,
+    //       threeFlags[1].distance,
+    //       ballData.distance
+    //     ),
+    //   },
+    // ]);
+    if (this.targetIdx >= this.targets.length) return;
+    const targetInfo = this.targets[this.targetIdx];
+    let targetData = this.seenObjects.find((o) =>
+      o.name.join("").startsWith(targetInfo.name)
     );
-
-    this.agent.act = this.chaseTarget(targetData);
+    this.seekTarget(targetData, targetInfo);
   }
 
-  chaseTarget(target) {
-    let action = undefined;
-    switch (this.targetState) {
-      case TargetState.lookup:
-        if (!target) {
-          action = {
-            n: "turn",
-            v: 8,
-          };
-        } else if (Math.abs(target.direction) >= 2) {
-          action = {
-            n: "turn",
-            v: target.direction / 4,
-          };
-        } else {
-          this.targetState = TargetState.seek;
-        }
+  getTargetState(targetData, targetInfo) {
+    if (!targetData) {
+      return TargetState.find;
+    } else if (Math.abs(targetData.direction) >= 1.5) {
+      return TargetState.adjust;
+    } else if (targetData.distance >= distanceLimits[targetInfo.act]) {
+      return TargetState.seek;
+    } else {
+      return TargetState.done;
+    }
+  }
+
+  seekTarget(targetData, targetInfo) {
+    const state = this.getTargetState(targetData, targetInfo);
+    switch (state) {
+      case TargetState.find:
+        this.agent.act = {
+          n: "turn",
+          v: 5,
+        };
+        break;
+      case TargetState.adjust:
+        this.agent.act = {
+          n: "turn",
+          v: targetData.direction / 2,
+        };
         break;
       case TargetState.seek:
-        if (target.distance >= this.reachDist) {
-          action = {
+        if (targetData.distance >= distanceLimits.slowdown) {
+          this.agent.acceleration += 5;
+          this.agent.acceleration = Math.min(this.agent.acceleration, 90);
+          this.agent.act = {
             n: "dash",
-            v: 100,
+            v: this.agent.acceleration,
           };
         } else {
-          this.targetState = TargetState.done;
+          this.agent.acceleration -= 5;
+          this.agent.acceleration = Math.max(40, this.agent.acceleration);
+          this.agent.act = {
+            n: "dash",
+            v: this.agent.acceleration,
+          };
         }
         break;
+
       case TargetState.done:
-        this.targetIdx++;
-        this.targetState = TargetState.lookup;
+        if (targetInfo.act == "kick") {
+          const targetGates = this.gatesData.find((g) =>
+            g.name.join("").startsWith(targetInfo.goal)
+          );
+          // console.log(this.gatesData, targetGatesName, targetGates);
+          if (!targetGates) {
+            this.agent.act = {
+              n: "kick",
+              v: `8 65`,
+            };
+          } else {
+            this.agent.act = {
+              n: "kick",
+              v: `80 ${targetGates.direction}`,
+            };
+          }
+          this.targets.push({
+            act: "kick",
+            name: "b",
+            goal: targetInfo.goal,
+          });
+        }
+        this.targetIdx += 1;
+        break;
+
+      default:
+        this.agent.doNothing();
         break;
     }
-    return action;
   }
 };

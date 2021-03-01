@@ -1,34 +1,23 @@
 const elparser = require("elparser");
-const { Flags } = require("./constants");
-const Controller = require("./controller");
-const { calcPlayerCoordsByFlags, calcOtherDistance2 } = require("./utils");
-// const readline = require("readline");
 
 class Agent {
-  constructor({ debug } = { debug: false }) {
+  constructor(x, y, { debug } = { debug: false }) {
     this._debug = debug;
+    this.init;
     this.side = "l";
     this.run = false;
     this.act = null;
-    this.pos = {
-      x: undefined,
-      y: undefined,
+    this.controller = undefined;
+
+    this.initPos = {
+      x: x,
+      y: y,
     };
-    // this.rl = readline.createInterface({
-    //   // Чтение консоли
-    //   input: process.stdin,
-    //   output: process.stdout,
-    // });
-    // this.rl.on("line", (input) => {
-    //   if (this.run) {
-    //     // Если игра начата
-    //     // Движения вперед, вправо, влево, удар по мячу
-    //     if ("w" == input) this.act = { n: "dash", v: 100 };
-    //     if ("d" == input) this.act = { n: "turn", v: 20 };
-    //     if ("a" == input) this.act = { n: "turn", v: -20 };
-    //     if ("s" == input) this.act = { n: "kick", v: 100 };
-    //   }
-    // });
+
+    this.pos = Object.assign({}, this.initPos);
+
+    this.acceleration = 0;
+    this.orientation = 0;
   }
 
   setController(controller) {
@@ -53,8 +42,6 @@ class Agent {
   processMsg(msg) {
     const parsedMsg = elparser.parse1(msg.replace("\0", "").trim()).toJS();
     const [cmd, ...params] = parsedMsg;
-
-    if (cmd == "init") this.initAgent(params);
     this.controller.analyzeEnv(cmd, params);
   }
 
@@ -63,17 +50,9 @@ class Agent {
     if (p[1]) this.id = p[1];
   }
 
-  // setAction(name, params) {
-  //   this.act = {
-  //     n: name,
-  //     v: params,
-  //   };
-  // }
-
   sendAction(action) {
     if (this.run && action) {
-      if (action.n === "kick") this.socketSend(action.n, action.v + " 0");
-      else this.socketSend(action.n, action.v);
+      this.socketSend(action.n, action.v);
     }
   }
 

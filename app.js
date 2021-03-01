@@ -5,12 +5,7 @@ const VERSION = 7;
 
 const [teamName, x, y] = process.argv.slice(2);
 
-const agent1 = new Agent({ debug: true });
-
-const initPos = {
-  x: x || -15,
-  y: y || 0,
-};
+const agent1 = new Agent(x, y, { debug: true });
 
 const targets = [
   { act: "flag", name: "frb" },
@@ -19,10 +14,9 @@ const targets = [
   { act: "kick", name: "b", goal: "gr" },
 ];
 
-const controller = new Controller(initPos, targets);
+const controller = new Controller(targets);
 agent1.setController(controller);
-initAgent(agent1, teamName || "a", VERSION);
 
 setTimeout(() => {
-  controller.restartAgentPosition();
-}, 500);
+  initAgent(agent1, teamName || "a", VERSION);
+}, 100);

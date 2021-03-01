@@ -62,6 +62,12 @@ const Flags = {
 const Angle = [-180, 180];
 const NeckAngle = [-90, 90];
 
+const distanceLimits = {
+  flag: 3,
+  kick: 0.5,
+  slowdown: 8,
+};
+
 const fieldBorders = {
   left: -54,
   right: 54,
@@ -74,4 +80,5 @@ module.exports = {
   Angle,
   NeckAngle,
   fieldBorders,
+  distanceLimits,
 };

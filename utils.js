@@ -1,8 +1,9 @@
 const { fieldBorders } = require("./constants");
 
 const toRad = (angle) => (angle * Math.PI) / 180;
+const toDeg = (angleRad) => (angleRad * 180) / Math.PI;
 
-const calcPlayerCoordsByFlags = (baseFlags) => {
+const calcObjectCoordsByFlags = (baseFlags) => {
   if (baseFlags.length < 2) {
     return {};
   }
@@ -34,7 +35,7 @@ const calcPlayerCoordsByFlags = (baseFlags) => {
     const px = (beta2 - beta1) / (alpha1 - alpha2);
     return {
       x: px,
-      y: -1 * (alpha1 * px + beta1),
+      y: alpha1 * px + beta1,
     };
   }
   // by 2 flags
@@ -64,7 +65,7 @@ const calcPlayerCoordsByFlags = (baseFlags) => {
     ) {
       return {
         x: x,
-        y: -y,
+        y: y,
       };
     }
   }
@@ -75,7 +76,7 @@ const calcPlayerCoordsByFlags = (baseFlags) => {
   };
 };
 
-const calcOtherDistance2 = (angleA, angleB, distA, distB) => {
+const calcСosTheorem = (angleA, angleB, distA, distB) => {
   // if player sees A and B, calc distance from A to B
   return Math.sqrt(
     distA ** 2 +
@@ -84,7 +85,18 @@ const calcOtherDistance2 = (angleA, angleB, distA, distB) => {
   );
 };
 
+const kinematicAngularSeek = (start, end) => {
+  let direction = {
+    x: start.x - end.x,
+    y: start.x - end.y,
+  };
+  return toDeg(Math.atan2(direction.y, direction.x));
+};
+
 module.exports = {
-  calcPlayerCoordsByFlags,
-  calcOtherDistance2,
+  calcObjectCoordsByFlags,
+  calcСosTheorem,
+  kinematicAngularSeek,
+  toRad,
+  toDeg,
 };
