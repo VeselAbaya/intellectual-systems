@@ -1,4 +1,3 @@
-const Victor = require("victor");
 const { Flags, distanceLimits } = require("./constants");
 const {
   calcObjectCoordsByFlags,
