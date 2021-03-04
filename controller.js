@@ -1,4 +1,3 @@
-const Victor = require("victor");
 const { Flags, distanceLimits } = require("./constants");
 const {
   calcObjectCoordsByFlags,
@@ -99,6 +98,7 @@ module.exports = class Controller {
         this.agent.run = false;
         setTimeout(() => this.restartAgentPosition(), 500);
       }
+      return;
     } else if (cmd == "see") {
       this.seenObjects = info.map(
         ([
@@ -135,7 +135,6 @@ module.exports = class Controller {
         headAngle: hAngle,
         counters: counters,
       };
-      // const [speedValue, angle] = speedArgs;
     }
 
     if (
@@ -281,12 +280,12 @@ module.exports = class Controller {
           if (!targetGates) {
             this.agent.act = {
               n: "kick",
-              v: `8 65`,
+              v: `5 65`,
             };
           } else {
             this.agent.act = {
               n: "kick",
-              v: `80 ${targetGates.direction}`,
+              v: `95 ${targetGates.direction}`,
             };
           }
           this.targets.push({

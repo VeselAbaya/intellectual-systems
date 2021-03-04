@@ -11,7 +11,7 @@ const targets = [
   { act: "flag", name: "frb" },
   { act: "flag", name: "gl" },
   { act: "flag", name: "fc" },
-  { act: "kick", name: "b", goal: "gr" },
+  { act: "kick", name: "b", goal: "gl" },
 ];
 
 const controller = new Controller(targets);
