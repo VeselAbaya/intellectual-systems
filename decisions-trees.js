@@ -159,8 +159,8 @@ const goalKeeperDecisionTree = {
   state: {
     next: 0,
     sequence: [
-      { act: 'flag', fl: 'gr', maxDistance: 3, minDistance: 2 },
-      { act: 'kick', fl: 'b', goal: 'gl' }
+      { act: 'flag', fl: 'gr', maxDistance: 3, minDistance: 1 },
+      { act: 'kick', fl: 'b', goal: 'gl', minDistance: .5 }
     ],
     command: null
   },
@@ -180,7 +180,7 @@ const goalKeeperDecisionTree = {
     exec(mgr, state) {
       state.command = {
         n: 'turn',
-        v: '20'
+        v: '15'
       }
     },
     next: 'sendCommand'
@@ -196,7 +196,7 @@ const goalKeeperDecisionTree = {
     falseCond: 'farGoal'
   },
   checkMinDistance: {
-    condition: (mgr, state) => state.action.minDistance && mgr.getDistance(state.action.fl) < state.action.minDistance,
+    condition: (mgr, state) => state.action.minDistance && mgr.getDistance(state.action.fl) <= state.action.minDistance,
     trueCond: 'tooCloseGoal',
     falseCond: 'closeFlag'
   },
@@ -239,7 +239,7 @@ const goalKeeperDecisionTree = {
     exec(mgr, state) {
       state.command = {
         n: 'dash',
-        v: mgr.getDistance(state.action.flag) > 2 ? 100 : 50
+        v: mgr.getDistance(state.action.fl) > 3 ? 100 : 30
       }
     },
     next: 'sendCommand'
@@ -250,7 +250,7 @@ const goalKeeperDecisionTree = {
     falseCond: 'checkMaxDistanceToBall'
   },
   checkMinDistanceToBall: {
-    condition: (mgr, state) => mgr.getDistance(state.action.fl) > 1.8,
+    condition: (mgr, state) => mgr.getDistance(state.action.fl) > 1.5,
     trueCond: 'farGoal',
     falseCond: 'checkDistanceForKickAndCatch'
   },
@@ -290,7 +290,7 @@ const goalKeeperDecisionTree = {
     exec(mgr, state) {
       state.command = {
         n: 'kick',
-        v: `90 ${mgr.getAngle(state.action.goal)}`
+        v: `100 ${mgr.getAngle(state.action.goal)}`
       }
       state.next = 0
     },
