@@ -1,13 +1,15 @@
 const elparser = require("elparser");
 
 class Agent {
-  constructor(x, y, { debug } = { debug: false }) {
+  constructor(x, y, { debug, agentType } = { debug: false, agentType: '' }) {
     this._debug = debug;
+    this._debugPrevAction = null;
     this.init;
     this.side = "l";
     this.run = false;
     this.act = null;
     this.controller = undefined;
+    this.type = agentType || '';
 
     this.initPos = {
       x: x,
@@ -51,6 +53,11 @@ class Agent {
   }
 
   sendAction(action) {
+    if (JSON.stringify(this._debugPrevAction) !== JSON.stringify(action)) {
+      this._log(action);
+      this._debugPrevAction = action;
+    }
+
     if (this.run && action) {
       this.socketSend(action.n, action.v);
     }

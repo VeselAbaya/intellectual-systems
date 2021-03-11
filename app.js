@@ -1,11 +1,18 @@
 const Agent = require("./agent");
 const Controller = require("./controller");
 const initAgent = require("./socket");
+const {
+  flagDecisionTree,
+  twoPlayersDecisionTree,
+  goalKeeperDecisionTree
+} = require("./decisions-trees");
 const VERSION = 7;
 
 const [teamName, x, y] = process.argv.slice(2);
 
-const agent1 = new Agent(x, y, { debug: true });
+const agent1 = new Agent(x, y, { debug: false });
+const agent2 = new Agent(x - 15, y - 7, { debug: false });
+const agent3 = new Agent(-45, 0, { debug: true, agentType: '(goalie)' });
 
 const targets = [
   { act: "flag", name: "frb" },
@@ -14,9 +21,26 @@ const targets = [
   { act: "kick", name: "b", goal: "gl" },
 ];
 
-const controller = new Controller(targets);
-agent1.setController(controller);
+const controller1 = new Controller(targets);
+controller1.setDecisionTree(twoPlayersDecisionTree(teamName));
+agent1.setController(controller1);
+
+const controller2 = new Controller(targets);
+controller2.setDecisionTree(twoPlayersDecisionTree(teamName));
+agent2.setController(controller2);
+
+const controller3 = new Controller(targets);
+controller3.setDecisionTree(goalKeeperDecisionTree);
+agent3.setController(controller3);
 
 setTimeout(() => {
-  initAgent(agent1, teamName || "a", VERSION);
+  initAgent(agent1, teamName, VERSION);
+}, 100);
+
+setTimeout(() => {
+  initAgent(agent2, teamName, VERSION);
+}, 100);
+
+setTimeout(() => {
+  initAgent(agent3, 'teamRight', VERSION);
 }, 100);

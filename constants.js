@@ -75,10 +75,13 @@ const fieldBorders = {
   bottom: -32,
 };
 
+const Actions = Object.freeze({ Flag: 'flag', Kick: 'kick' });
+
 module.exports = {
   Flags,
   Angle,
   NeckAngle,
   fieldBorders,
   distanceLimits,
+  Actions
 };

@@ -76,7 +76,7 @@ const calcObjectCoordsByFlags = (baseFlags) => {
   };
 };
 
-const calcСosTheorem = (angleA, angleB, distA, distB) => {
+const calcCosTheorem = (angleA, angleB, distA, distB) => {
   // if player sees A and B, calc distance from A to B
   return Math.sqrt(
     distA ** 2 +
@@ -95,7 +95,7 @@ const kinematicAngularSeek = (start, end) => {
 
 module.exports = {
   calcObjectCoordsByFlags,
-  calcСosTheorem,
+  calcCosTheorem,
   kinematicAngularSeek,
   toRad,
   toDeg,

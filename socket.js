@@ -19,5 +19,6 @@ module.exports = function (agent, teamName, version) {
   };
 
   agent.setSocket(socket);
-  socket.sendMsg(`(init ${teamName} (version ${version}))`);
+  console.log(`(init ${teamName} (version ${version}) ${agent.type})`);
+  socket.sendMsg(`(init ${teamName} (version ${version}) ${agent.type})`);
 };

@@ -1,10 +1,11 @@
 const { Flags, distanceLimits } = require("./constants");
 const {
   calcObjectCoordsByFlags,
-  calcСosTheorem,
+  calcCosTheorem,
   toDeg,
   kinematicAngularSeek,
 } = require("./utils");
+const Manager = require('./manager');
 
 const TargetState = Object.freeze({ find: 1, adjust: 2, seek: 3, done: 5 });
 
@@ -19,6 +20,8 @@ module.exports = class Controller {
     this.gatesData = [];
     this.otherPlayers = [];
     this.ballData = [];
+    this.manager = new Manager();
+    this.decisionTree = {};
 
     this.senseBody = {};
 
@@ -27,6 +30,10 @@ module.exports = class Controller {
 
   setAgent(agent) {
     this.agent = agent;
+  }
+
+  setDecisionTree(decisionTree) {
+    this.decisionTree = decisionTree;
   }
 
   restartAgentPosition() {
@@ -59,6 +66,9 @@ module.exports = class Controller {
           ball = o;
           break;
         case "g":
+          const gCoords = Flags[o.name.join("")];
+          o.x = gCoords.x;
+          o.y = gCoords.y;
           gates.push(o);
           break;
         default:
@@ -160,71 +170,84 @@ module.exports = class Controller {
 
     const threeFlags = this.takeThreeFlags(this.flagsData);
     this.agent.pos = calcObjectCoordsByFlags(threeFlags);
-    // this.otherPlayers = [];
-    // otherPlayers.forEach((player) => {
-    //   const otherPlayerPos = calcObjectCoordsByFlags([
-    //     {
-    //       x: this.agent.pos.x,
-    //       y: this.agent.pos.y,
-    //       distance: player.distance,
-    //     },
-    //     {
-    //       x: threeFlags[0].x,
-    //       y: threeFlags[0].y,
-    //       distance: calcСosTheorem(
-    //         threeFlags[0].direction,
-    //         player.direction,
-    //         threeFlags[0].distance,
-    //         player.distance
-    //       ),
-    //     },
-    //     {
-    //       x: threeFlags[1].x,
-    //       y: threeFlags[1].y,
-    //       distance: calcСosTheorem(
-    //         threeFlags[1].direction,
-    //         player.direction,
-    //         threeFlags[1].distance,
-    //         player.distance
-    //       ),
-    //     },
-    //   ]);
-    //   otherPlayerPos.name = player.name.join("");
-    //   this.otherPlayers.push(otherPlayerPos);
-    // });
-    // const ballPos = calcObjectCoordsByFlags([
-    //   {
-    //     x: this.agent.pos.x,
-    //     y: this.agent.pos.y,
-    //     distance: ballData.distance,
-    //   },
-    //   {
-    //     x: threeFlags[2].x,
-    //     y: threeFlags[2].y,
-    //     distance: calcСosTheorem(
-    //       threeFlags[2].direction,
-    //       ballData.direction,
-    //       threeFlags[2].distance,
-    //       ballData.distance
-    //     ),
-    //   },
-    //   {
-    //     x: threeFlags[1].x,
-    //     y: threeFlags[1].y,
-    //     distance: calcСosTheorem(
-    //       threeFlags[1].direction,
-    //       ballData.direction,
-    //       threeFlags[1].distance,
-    //       ballData.distance
-    //     ),
-    //   },
-    // ]);
-    if (this.targetIdx >= this.targets.length) return;
-    const targetInfo = this.targets[this.targetIdx];
-    let targetData = this.seenObjects.find((o) =>
-      o.name.join("").startsWith(targetInfo.name)
-    );
-    this.seekTarget(targetData, targetInfo);
+    this.otherPlayers.forEach(player => {
+      const otherPlayerPos = calcObjectCoordsByFlags([
+        {
+          x: this.agent.pos.x,
+          y: this.agent.pos.y,
+          distance: player.distance,
+        },
+        {
+          x: threeFlags[0].x,
+          y: threeFlags[0].y,
+          distance: calcCosTheorem(
+            threeFlags[0].direction,
+            player.direction,
+            threeFlags[0].distance,
+            player.distance
+          ),
+        },
+        threeFlags[1] && {
+          x: threeFlags[1].x,
+          y: threeFlags[1].y,
+          distance: calcCosTheorem(
+            threeFlags[1].direction,
+            player.direction,
+            threeFlags[1].distance,
+            player.distance
+          ),
+        },
+      ]);
+      player.x = otherPlayerPos.x;
+      player.y = otherPlayerPos.y;
+    });
+    const ballPos = calcObjectCoordsByFlags([
+      {
+        x: this.agent.pos.x,
+        y: this.agent.pos.y,
+        distance: ballData.distance,
+      },
+      {
+        x: threeFlags[0].x,
+        y: threeFlags[0].y,
+        distance: calcCosTheorem(
+          threeFlags[0].direction,
+          ballData.direction,
+          threeFlags[0].distance,
+          ballData.distance
+        ),
+      },
+      threeFlags[1] && {
+        x: threeFlags[1].x,
+        y: threeFlags[1].y,
+        distance: calcCosTheorem(
+          threeFlags[1].direction,
+          ballData.direction,
+          threeFlags[1].distance,
+          ballData.distance
+        ),
+      },
+    ]);
+    this.ballData.x = ballPos.x;
+    this.ballData.y = ballPos.y;
+
+    this.manager.setSeenObjects({
+      flagsData,
+      otherPlayers,
+      gatesData,
+      ballData
+    })
+    this.manager.myPos = this.agent.pos;
+
+      // Осталось от 2-ой практической
+    // if (this.targetIdx >= this.targets.length) return;
+    // const targetInfo = this.targets[this.targetIdx];
+    // let targetData = this.seenObjects.find((o) =>
+    //   o.name.join("").startsWith(targetInfo.name)
+    // );
+    // this.seekTarget(targetData, targetInfo);
+
+    this.agent.act = this.manager.getAction(this.decisionTree);
   }
 
   getTargetState(targetData, targetInfo) {
