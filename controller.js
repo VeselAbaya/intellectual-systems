@@ -30,6 +30,7 @@ module.exports = class Controller {
   }
 
   restartAgentPosition() {
+    this.decisionTree && (this.decisionTree.state.next = 0);
     this.agent.socketSend(
       "move",
       `${this.agent.initPos.x} ${this.agent.initPos.y}`

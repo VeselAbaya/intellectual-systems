@@ -311,7 +311,7 @@ const goalKeeperDecisionTree = {
         n: "kick",
         v: `100 ${mgr.getAngle(state.action.goal)}`,
       };
-      state.next = 0;
+      setTimeout(() => state.next = 0, 100);
     },
     next: "sendCommand",
   },

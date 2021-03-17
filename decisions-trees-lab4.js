@@ -13,6 +13,12 @@ firstPlayerTree = (team) => ({
     ],
     command: null,
   },
+  runToGoal: {
+    exec(mgr, state) {
+      state.command = { n: "dash", v: mgr.getDistance(state.action.flag) < 3 ? 45 : 65};
+    },
+    next: "sendCommand",
+  },
   root: {
     exec(mgr, state) {
       state.action = state.sequence[state.next];
@@ -59,7 +65,8 @@ firstPlayerTree = (team) => ({
   ballGoalVisible: {
     exec(mgr, state) {
       player = mgr.getVisiblePlayerFromTeam(team);
-      direction = player.direction;
+      dirChange = player.dirChange;
+      direction = player.direction + (dirChange > 0 ? 15 : -15);
       speed = Math.min(95, player.distance * 2);
       state.command = {
         n: "kick",
@@ -81,8 +88,8 @@ secondPlayerTree = (team) => ({
   state: {
     next: 0,
     sequence: [
-      { act: "flag", flag: "fplc" },
-      { act: "kick", flag: "b", goal: "p" },
+      { act: "flag", flag: "fplb" },
+      { act: "flag", flag: "fgrb" },
       { act: "stay" },
     ],
     command: null,
@@ -94,43 +101,38 @@ secondPlayerTree = (team) => ({
     },
     next: "checkStay",
   },
+  runToGoal: {
+    exec(mgr, state) {
+      state.command = { n: "dash", v: state.action.act === 'kick' ? (mgr.getDistance(state.action.flag) < 3 ? 30 : 65) : 30};
+    },
+    next: "sendCommand",
+  },
+  checkHearGo: {
+    condition: (mgr, state) => mgr.hearData && mgr.hearData.msg === 'go',
+    trueCond: 'addBallToSequence',
+    falseCond: 'goalVisible'
+  },
+  addBallToSequence: {
+    exec: (mgr, state) => {
+      state.sequence.splice(state.sequence.length - 1, 0, {act: 'kick', flag: 'b', goal: 'gr'});
+      state.next = state.sequence.length - 2;
+      mgr.hearData = {};
+    },
+    next: 'root'
+  },
   checkStay: {
     condition: (mgr, state) => {
-      return state.action.act == "stay";
+      return state.action.act === "stay";
     },
     trueCond: "doNothing",
-    falseCond: "goalVisible",
+    falseCond: "checkHearGo",
   },
   doNothing: {
     exec(mgr, state) {
       state.command = {};
     },
     next: "sendCommand",
-  },
-  closeBall: {
-    condition: (mgr, state) => {
-      return mgr.getVisiblePlayerFromTeam(team);
-    },
-    trueCond: "ballGoalVisible",
-    falseCond: "ballGoalInvisible",
-  },
-  ballGoalVisible: {
-    exec(mgr, state) {
-      player = mgr.getVisiblePlayerFromTeam(team);
-      direction = player.direction;
-      speed = Math.min(95, player.distance * 2);
-      state.command = {
-        n: "kick",
-        v: `${speed} ${direction}`,
-      };
-      setTimeout(
-        () =>
-          (state.next = Math.min(state.next + 1, state.sequence.length - 1)),
-        100
-      );
-    },
-    next: "sendCommand",
-  },
+  }
 });
 
 module.exports = {
