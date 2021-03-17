@@ -5,15 +5,10 @@ const {
   toDeg,
   kinematicAngularSeek,
 } = require("./utils");
-const Manager = require('./manager');
-
-const TargetState = Object.freeze({ find: 1, adjust: 2, seek: 3, done: 5 });
+const Manager = require("./manager");
 
 module.exports = class Controller {
-  constructor(targets = []) {
-    this.targets = targets;
-    this.targetIdx = 0;
-    this.initTargetsLen = targets.length;
+  constructor() {
     this.agent = undefined;
     this.seenObjects = [];
     this.flagsData = [];
@@ -21,11 +16,9 @@ module.exports = class Controller {
     this.otherPlayers = [];
     this.ballData = [];
     this.manager = new Manager();
-    this.decisionTree = {};
+    this.decisionTree = null;
 
     this.senseBody = {};
-
-    this.targetState = TargetState.lookup;
   }
 
   setAgent(agent) {
@@ -42,8 +35,6 @@ module.exports = class Controller {
       `${this.agent.initPos.x} ${this.agent.initPos.y}`
     );
     this.agent.pos = Object.assign({}, this.agent.initPos);
-    this.targetIdx = 0;
-    this.targets = this.targets.slice(0, this.initTargetsLen);
   }
 
   parseSeenObjects(seenObjects) {
@@ -102,11 +93,19 @@ module.exports = class Controller {
       this.agent.initAgent(params);
       this.restartAgentPosition();
       return;
-    } else if (cmd == "hear" && info[0] == "referee") {
-      if (info[1] == "play_on") this.agent.run = true;
-      else if (info[1].startsWith("goal")) {
-        this.agent.run = false;
-        setTimeout(() => this.restartAgentPosition(), 500);
+    } else if (cmd == "hear") {
+      if (info[0] == "referee") {
+        if (info[1] == "play_on") this.agent.run = true;
+        else if (info[1].startsWith("goal")) {
+          this.agent.run = false;
+          setTimeout(() => this.restartAgentPosition(), 500);
+        }
+      } else {
+        this.manager.setHearData({
+          time: time,
+          sender: info[0],
+          msg: info[1],
+        });
       }
       return;
     } else if (cmd == "see") {
@@ -170,7 +169,7 @@ module.exports = class Controller {
 
     const threeFlags = this.takeThreeFlags(this.flagsData);
     this.agent.pos = calcObjectCoordsByFlags(threeFlags);
-    this.otherPlayers.forEach(player => {
+    this.otherPlayers.forEach((player) => {
       const otherPlayerPos = calcObjectCoordsByFlags([
         {
           x: this.agent.pos.x,
@@ -235,94 +234,12 @@ module.exports = class Controller {
       flagsData,
       otherPlayers,
       gatesData,
-      ballData
-    })
+      ballData,
+    });
     this.manager.myPos = this.agent.pos;
 
-      // Осталось от 2-ой практической
-    // if (this.targetIdx >= this.targets.length) return;
-    // const targetInfo = this.targets[this.targetIdx];
-    // let targetData = this.seenObjects.find((o) =>
-    //   o.name.join("").startsWith(targetInfo.name)
-    // );
-    // this.seekTarget(targetData, targetInfo);
-
-    this.agent.act = this.manager.getAction(this.decisionTree);
-  }
-
-  getTargetState(targetData, targetInfo) {
-    if (!targetData) {
-      return TargetState.find;
-    } else if (Math.abs(targetData.direction) >= 1.5) {
-      return TargetState.adjust;
-    } else if (targetData.distance >= distanceLimits[targetInfo.act]) {
-      return TargetState.seek;
-    } else {
-      return TargetState.done;
-    }
-  }
-
-  seekTarget(targetData, targetInfo) {
-    const state = this.getTargetState(targetData, targetInfo);
-    switch (state) {
-      case TargetState.find:
-        this.agent.act = {
-          n: "turn",
-          v: 5,
-        };
-        break;
-      case TargetState.adjust:
-        this.agent.act = {
-          n: "turn",
-          v: targetData.direction / 4,
-        };
-        break;
-      case TargetState.seek:
-        if (targetData.distance >= distanceLimits.slowdown) {
-          this.agent.acceleration += 5;
-          this.agent.acceleration = Math.min(this.agent.acceleration, 90);
-          this.agent.act = {
-            n: "dash",
-            v: this.agent.acceleration,
-          };
-        } else {
-          this.agent.acceleration -= 5;
-          this.agent.acceleration = Math.max(40, this.agent.acceleration);
-          this.agent.act = {
-            n: "dash",
-            v: this.agent.acceleration,
-          };
-        }
-        break;
-
-      case TargetState.done:
-        if (targetInfo.act == "kick") {
-          const targetGates = this.gatesData.find((g) =>
-            g.name.join("").startsWith(targetInfo.goal)
-          );
-          if (!targetGates) {
-            this.agent.act = {
-              n: "kick",
-              v: `5 65`,
-            };
-          } else {
-            this.agent.act = {
-              n: "kick",
-              v: `95 ${targetGates.direction}`,
-            };
-          }
-          this.targets.push({
-            act: "kick",
-            name: "b",
-            goal: targetInfo.goal,
-          });
-        }
-        this.targetIdx += 1;
-        break;
-
-      default:
-        this.agent.doNothing();
-        break;
+    if (this.decisionTree) {
+      this.agent.act = this.manager.getAction(this.decisionTree);
     }
   }
 };

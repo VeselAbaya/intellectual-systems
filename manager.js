@@ -1,12 +1,13 @@
-const {Actions} = require('./constants');
+const { Actions } = require("./constants");
 
 module.exports = class Manager {
   constructor() {
+    this.hearData = {};
     this.flagsData = [];
     this.otherPlayers = [];
     this.gatesData = [];
     this.ballData = [];
-    this.myPos = {}
+    this.myPos = {};
   }
 
   getAction(decisionTree) {
@@ -23,21 +24,25 @@ module.exports = class Manager {
       if (typeof action.command == "function") {
         return action.command(this, dt.state);
       }
-      throw new Error(`Unexpected node in DT: ${title}`)
-    }
+      throw new Error(`Unexpected node in DT: ${title}`);
+    };
 
-    return execute(decisionTree, "root")
+    return execute(decisionTree, "root");
   }
 
   getMyPos() {
     return this.myPos;
   }
 
-  setSeenObjects({flagsData, otherPlayers, gatesData, ballData}) {
+  setSeenObjects({ flagsData, otherPlayers, gatesData, ballData }) {
     this.flagsData = flagsData;
     this.otherPlayers = otherPlayers;
     this.gatesData = gatesData;
     this.ballData = ballData;
+  }
+
+  setHearData(hearData) {
+    this.hearData = hearData;
   }
 
   getVisibleFlag(flagName) {
@@ -59,10 +64,12 @@ module.exports = class Manager {
   }
 
   _findFlag(flagName) {
-    return [...this.flagsData, ...this.gatesData, this.ballData].find(({name}) => name && (flagName === name.join('')));
+    return [...this.flagsData, ...this.gatesData, this.ballData].find(
+      ({ name }) => name && flagName === name.join("")
+    );
   }
 
   _findPlayerFromTeam(teamName) {
-    return this.otherPlayers.find(({name}) => name.includes(teamName));
+    return this.otherPlayers.find(({ name }) => name.includes(teamName));
   }
-}
+};
