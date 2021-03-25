@@ -104,7 +104,7 @@ module.exports = class Controller {
       } else {
         this.manager.setHearData({
           time: time,
-          sender: info[0],
+          who: info[0],
           msg: info[1],
         });
       }
