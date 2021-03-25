@@ -1,6 +1,7 @@
 const Agent = require("./agent");
 const Controller = require("./controller");
 const initAgent = require("./socket");
+const {TA} = require("./state-machine-lab5");
 const VERSION = 7;
 
 const [teamName, x, y] = process.argv.slice(2);
@@ -26,7 +27,7 @@ const controller2 = new Controller();
 agent2.setController(controller2);
 
 const controller3 = new Controller();
-controller3.setDecisionTree();
+controller3.setStateMachine(TA);
 agent3.setController(controller3);
 
 const controller4 = new Controller();

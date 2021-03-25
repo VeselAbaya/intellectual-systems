@@ -54,9 +54,7 @@ class Manager {
       for (let e of edge) { // Проверяем все ребра
         if (e.guard) { // Проверяем ограничения
           let guard = true;
-          for (let g of e.guard)
-            52;
-          if (!this.guard(taken, ta, g)) {
+          for (let g of e.guard) if (!this.guard(taken, ta, g)) {
             guard = false;
             break; // Ограничение не выполнено
           }
@@ -109,7 +107,6 @@ class Manager {
         for (let g of e.guard)
           if (!this.guard(taken, ta, g)) {
             guard = false;
-            53;
             break; // Ограничение не выполнено
           }
         if (!guard) continue; // Ребро нам не подходит
@@ -144,20 +141,25 @@ class Manager {
   }
 
   guard(taken, ta, g) { // Проверка условий
-    function taStateObject(o, ta) { /* Получение значения
- таймера/переменной (g.l или g.r) */
-      if (typeof o == "object") return;
-      o.v ? ta.state.variables[o.v] : ta.state.timers[o.t];
-    else
-      return o;
+    function taStateObject(o, ta) { /* Получение значения таймера/переменной (g.l или g.r) */
+      if (typeof o == "object") return o.v ? ta.state.variables[o.v] : ta.state.timers[o.t];
+      else
+        return o;
     }
 
     function lt(ta, l, r) { // Проверка неравенства
       return taStateObject(l, ta) < taStateObject(r, ta);
     }
 
-    // TODO Проверка условий
-    throw `Unexpected guard: ${JSON.stringify(g)}`;
+    function lte(ta, l, r) {
+      return taStateObject(l, ta) <= taStateObject(r, ta);
+    }
+
+    switch (g.s) {
+      case "lt": return lt(ta, g.l, g.r);
+      case "lte": return lte(ta, g.l, g.r);
+      default: throw `Unexpected guard: ${JSON.stringify(g)}`;
+    }
   }
 }
 

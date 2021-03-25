@@ -16,7 +16,7 @@ module.exports = class Controller {
     this.otherPlayers = [];
     this.ballData = [];
     this.manager = new Manager();
-    this.decisionTree = null;
+    this.stateMachine = null;
 
     this.senseBody = {};
   }
@@ -25,12 +25,12 @@ module.exports = class Controller {
     this.agent = agent;
   }
 
-  setDecisionTree(decisionTree) {
-    this.decisionTree = decisionTree;
+  setStateMachine(stateMachine) {
+    this.stateMachine = stateMachine;
   }
 
   restartAgentPosition() {
-    this.decisionTree && (this.decisionTree.state.next = 0);
+    this.stateMachine && (this.stateMachine.state.next = 0);
     this.agent.socketSend(
       "move",
       `${this.agent.initPos.x} ${this.agent.initPos.y}`
@@ -58,7 +58,7 @@ module.exports = class Controller {
           ball = o;
           break;
         case "g":
-          o.name = o.name.join("");
+          o.name = typeof o.name === 'string' ? o.name : o.name.join("");
           const gCoords = Flags[o.name];
           o.x = gCoords.x;
           o.y = gCoords.y;
@@ -246,8 +246,8 @@ module.exports = class Controller {
 
     this.manager.taken.pos = this.agent.pos;
 
-    if (this.decisionTree) {
-      this.agent.act = this.manager.getAction(this.decisionTree);
+    if (this.stateMachine) {
+      this.agent.act = this.manager.getAction(this.stateMachine);
     }
   }
 };

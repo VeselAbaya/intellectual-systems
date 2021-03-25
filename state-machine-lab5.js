@@ -18,15 +18,16 @@ const TA = {
   },
   edges: { /* Ребра автомата (имя каждого ребра указывает на
 узел-источник и узел-приемник) */
-    start_close:
-      [{guard: [{s: "lt", l: {v: "dist"}, r: 2}]}],
+    start_close: [{guard: [{s: "lt", l: {v: "dist"}, r: 2}]}],
     /* Список guard описывает перечень условий, проверяемых
     * для перехода по ребру. Знак lt - меньше, lte - меньше
     * либо равно. В качестве параметров принимаются числа или
     * значения переменных "v" или таймеров "t" */
     start_near: [{
-      guard: [{s: "lt", l: {v: "dist"}, r: 10},
-        {s: "lte", l: 2, r: {v: "dist"}}]
+      guard: [
+        {s: "lt", l: {v: "dist"}, r: 10},
+        {s: "lte", l: 2, r: {v: "dist"}}
+      ]
     }],
     start_far: [{guard: [{s: "lte", l: 10, r: {v: "dist"}}]}],
     close_catch: [{synch: "catch!"}],
@@ -41,15 +42,17 @@ const TA = {
     }],
     /* Список assign перечисляет присваивания для переменных
     * "variable" и таймеров "timer" */
-    far_start: [{
-      guard: [{s: "lt", l: 10, r: {t: "t"}}],
-      synch: "lookAround!",
-      assign: [{n: "t", v: 0, type: "timer"}]
-    },
+    far_start: [
+      {
+        guard: [{s: "lt", l: 10, r: {t: "t"}}],
+        synch: "lookAround!",
+        assign: [{n: "t", v: 0, type: "timer"}]
+      },
       {
         guard: [{s: "lte", l: {t: "t"}, r: 10}],
         synch: "ok!"
-      }],
+      }
+    ],
     near_start: [{
       synch: "empty!",
       assign: [{n: "t", v: 0, type: "timer"}]
@@ -179,3 +182,5 @@ const TA = {
     } // Пустое действие
   }
 };
+
+module.exports = {TA};
