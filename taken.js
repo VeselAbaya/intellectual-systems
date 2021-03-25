@@ -12,18 +12,25 @@ class Taken {
   }
 
   setHear(input) {
+    this.time = input.time;
     this.hear.push(input);
   }
 
-  setSee({ flagsData, otherPlayers, gatesData, ballData }, teamName, side) {
+  setSee(
+    time,
+    { flagsData, otherPlayers, gatesData, ballData },
+    teamName,
+    side
+  ) {
+    this.time = time;
     this.ballPrev = Object.assign({}, this.ball);
     this.ball.x = ballData.x;
     this.ball.y = ballData.y;
     this.ball.dist = ballData.distance;
     this.ball.angle = ballData.direction;
 
-    const [team, teamOwn] = otherPlayers
-      .reduce(([team, teamOwn], p) => {
+    const [team, teamOwn] = otherPlayers.reduce(
+      ([team, teamOwn], p) => {
         if (p.name.includes(teamName)) {
           teamOwn.push(p);
         } else {
@@ -31,7 +38,9 @@ class Taken {
         }
 
         return [team, teamOwn];
-      }, [[], []]);
+      },
+      [[], []]
+    );
     this.team = team.map((p) => ({
       x: p.x,
       y: p.y,

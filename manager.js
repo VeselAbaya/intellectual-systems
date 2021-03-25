@@ -10,8 +10,8 @@ class Manager {
     this.taken.setHear(input);
   }
 
-  setSeenObjects(input, teamName, side) {
-    this.taken.setSee(input, teamName, side);
+  setSeenObjects(time, input, teamName, side) {
+    this.taken.setSee(time, input, teamName, side);
   }
 
   getAction(ta) { // Формирование действия

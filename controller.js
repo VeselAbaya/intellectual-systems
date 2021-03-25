@@ -233,6 +233,7 @@ module.exports = class Controller {
     this.ballData.y = ballPos.y;
 
     this.manager.setSeenObjects(
+      time,
       {
         flagsData,
         otherPlayers,
@@ -243,7 +244,7 @@ module.exports = class Controller {
       this.agent.side
     );
 
-    this.manager.myPos = this.agent.pos;
+    this.manager.taken.pos = this.agent.pos;
 
     if (this.decisionTree) {
       this.agent.act = this.manager.getAction(this.decisionTree);
