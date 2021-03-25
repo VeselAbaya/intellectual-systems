@@ -1,15 +1,15 @@
 const elparser = require("elparser");
 
 class Agent {
-  constructor(x, y, { debug, agentType } = { debug: false, agentType: '' }) {
+  constructor(x, y, { debug, agentType } = { debug: false, agentType: "" }) {
     this._debug = debug;
     this._debugPrevAction = null;
-    this.init;
+    this.teamName = "";
     this.side = "l";
     this.run = false;
     this.act = null;
     this.controller = undefined;
-    this.type = agentType || '';
+    this.type = agentType || "";
 
     this.initPos = {
       x: x,

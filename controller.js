@@ -12,7 +12,7 @@ module.exports = class Controller {
     this.agent = undefined;
     this.seenObjects = [];
     this.flagsData = [];
-    this.gatesData = [];
+    this.gatesData = {};
     this.otherPlayers = [];
     this.ballData = [];
     this.manager = new Manager();
@@ -41,7 +41,7 @@ module.exports = class Controller {
   parseSeenObjects(seenObjects) {
     let flags = [];
     let otherPlayers = [];
-    let gates = [];
+    let gates = {};
     let ball = {};
     seenObjects.forEach((o) => {
       switch (o.name[0]) {
@@ -58,10 +58,11 @@ module.exports = class Controller {
           ball = o;
           break;
         case "g":
-          const gCoords = Flags[o.name.join("")];
+          o.name = o.name.join("");
+          const gCoords = Flags[o.name];
           o.x = gCoords.x;
           o.y = gCoords.y;
-          gates.push(o);
+          gates[o.name] = o;
           break;
         default:
           break;
@@ -231,12 +232,17 @@ module.exports = class Controller {
     this.ballData.x = ballPos.x;
     this.ballData.y = ballPos.y;
 
-    this.manager.setSeenObjects({
-      flagsData,
-      otherPlayers,
-      gatesData,
-      ballData,
-    });
+    this.manager.setSeenObjects(
+      {
+        flagsData,
+        otherPlayers,
+        gatesData,
+        ballData,
+      },
+      this.agent.teamName,
+      this.agent.side
+    );
+
     this.manager.myPos = this.agent.pos;
 
     if (this.decisionTree) {

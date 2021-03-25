@@ -8,15 +8,40 @@ class Taken {
     this.teamOwn = [];
     this.team = []; // {x: -27.2, y: -5.5, f: "p\"teamA\"1", dist: 18.2, angle: 17}
     this.goal = {}; // {x: 0, y: 0.72, f: "gr", dist: 97.5, angle: 2}
+    this.goalOwn = {}; // {x: 0, y: 0.72, f: "gr", dist: 97.5, angle: 2}
   }
 
   setHear(input) {
     this.hear.push(input);
   }
 
-  setSee(input, team, side) {
+  setSee({ flagsData, otherPlayers, gatesData, ballData }, teamName, side) {
+    this.ballPrev = Object.assign({}, this.ball);
+    this.ball.x = ballData.x;
+    this.ball.y = ballData.y;
+    this.ball.dist = ballData.distance;
+    this.ball.angle = ballData.direction;
 
+    this.team = otherPlayers
+      .filter((p) => p.name.includes(teamName))
+      .map((p) => {
+        return {
+          x: p.x,
+          y: p.y,
+          f: p.name.join(""),
+          dist: p.distance,
+          angle: p.direction,
+        };
+      });
+
+    if (side == "l") {
+      this.goal = gatesData["gr"];
+      this.goalOwn = gatesData["gl"];
+    } else if (side == "r") {
+      this.goal = gatesData["gl"];
+      this.goalOwn = gatesData["gr"];
+    }
   }
 }
 
-module.exports = {Taken};
+module.exports = { Taken };
