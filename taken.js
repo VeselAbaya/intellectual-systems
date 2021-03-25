@@ -22,22 +22,35 @@ class Taken {
     this.ball.dist = ballData.distance;
     this.ball.angle = ballData.direction;
 
-    this.team = otherPlayers
-      .filter((p) => p.name.includes(teamName))
-      .map((p) => {
-        return {
-          x: p.x,
-          y: p.y,
-          f: p.name.join(""),
-          dist: p.distance,
-          angle: p.direction,
-        };
-      });
+    const [team, teamOwn] = otherPlayers
+      .reduce(([team, teamOwn], p) => {
+        if (p.name.includes(teamName)) {
+          teamOwn.push(p);
+        } else {
+          team.push(p);
+        }
 
-    if (side == "l") {
+        return [team, teamOwn];
+      }, [[], []]);
+    this.team = team.map((p) => ({
+      x: p.x,
+      y: p.y,
+      f: p.name.join(""),
+      dist: p.distance,
+      angle: p.direction,
+    }));
+    this.teamOwn = teamOwn.map((p) => ({
+      x: p.x,
+      y: p.y,
+      f: p.name.join(""),
+      dist: p.distance,
+      angle: p.direction,
+    }));
+
+    if (side === "l") {
       this.goal = gatesData["gr"];
       this.goalOwn = gatesData["gl"];
-    } else if (side == "r") {
+    } else if (side === "r") {
       this.goal = gatesData["gl"];
       this.goalOwn = gatesData["gr"];
     }
