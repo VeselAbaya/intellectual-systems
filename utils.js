@@ -70,10 +70,7 @@ const calcObjectCoordsByFlags = (baseFlags) => {
     }
   }
 
-  return {
-    x: undefined,
-    y: undefined,
-  };
+  return {};
 };
 
 const calcCosTheorem = (angleA, angleB, distA, distB) => {

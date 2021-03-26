@@ -1,4 +1,5 @@
-const {Taken} = require('./taken');
+const { Taken } = require("./taken");
+
 const BEFORE_ACTION = "beforeAction";
 
 class Manager {
@@ -6,7 +7,8 @@ class Manager {
     this.taken = new Taken();
   }
 
-  setHearData(input) { // Сохранение услышанного игроком
+  setHearData(input) {
+    // Сохранение услышанного игроком
     this.taken.setHear(input);
   }
 
@@ -14,16 +16,17 @@ class Manager {
     this.taken.setSee(time, input, teamName, side);
   }
 
-  getAction(ta) { // Формирование действия
+  getAction(ta) {
+    // Формирование действия
     this.incTimers(this.taken, ta);
     if (ta.actions[BEFORE_ACTION])
       ta.actions[BEFORE_ACTION](this.taken, ta.state);
     return this.execute(this.taken, ta);
   }
 
-  incTimers(taken, ta) { // Увеличение таймеров
-    if (!this.lastTime)
-      this.lastTime = 0;
+  incTimers(taken, ta) {
+    // Увеличение таймеров
+    if (!this.lastTime) this.lastTime = 0;
     if (taken.time > this.lastTime) {
       this.lastTime = taken.time;
       for (let key in ta.state.timers)
@@ -31,12 +34,32 @@ class Manager {
     }
   }
 
-  execute(taken, ta) { // Формирование действия
-    if (ta.state.synch) { // Если действие выполнено не до конца
+  /*
+  incTimers(taken, ta) {
+    // Увеличение таймеров
+    if (!this.lastTime) {
+      this.lastTime = 0;
+    }
+
+    if (taken.time > this.lastTime) {
+      this.lastTime = taken.time;
+
+      for (let key in ta.state.timers) {
+        ta.state.timers[key] = ta.state.timers[key] + 1;
+      }
+    }
+  },
+  */
+
+  execute(taken, ta) {
+    // Формирование действия
+    if (ta.state.synch) {
+      // Если действие выполнено не до конца
       let cond = ta.state.synch.substr(0, ta.state.synch.length - 1);
       return ta.actions[cond](taken, ta.state);
     }
-    if (ta.state.next) { // Переход на следующей действие
+    if (ta.state.next) {
+      // Переход на следующей действие
       if (ta.nodes[ta.current]) return this.nextState(taken, ta);
       if (ta.edges[ta.current]) return this.nextEdge(taken, ta);
     } // Переход не нужен
@@ -45,30 +68,36 @@ class Manager {
     throw `Unexpected state: ${ta.current}`;
   }
 
-  nextState(taken, ta) { // Находимся в узле, нужен переход
+  nextState(taken, ta) {
+    // Находимся в узле, нужен переход
     let node = ta.nodes[ta.current];
-    for (let name of node.e) { // Перебираем ребра
+    for (let name of node.e) {
+      // Перебираем ребра
       let edgeName = `${node.n}_${name}`;
       let edge = ta.edges[edgeName];
       if (!edge) throw `Unexpected edge: ${node.n}_${name}`;
-      for (let e of edge) { // Проверяем все ребра
-        if (e.guard) { // Проверяем ограничения
+      for (let e of edge) {
+        // Проверяем все ребра
+        if (e.guard) {
+          // Проверяем ограничения
           let guard = true;
-          for (let g of e.guard) if (!this.guard(taken, ta, g)) {
-            guard = false;
-            break; // Ограничение не выполнено
-          }
-          if (!guard) // Ребро нам не подходит
+          for (let g of e.guard)
+            if (!this.guard(taken, ta, g)) {
+              guard = false;
+              break; // Ограничение не выполнено
+            }
+          if (!guard)
+            // Ребро нам не подходит
             continue;
         }
-        if (e.synch) { // Необходима синхронизация
-          if (e.synch.endsWith("?")) { // Проверка условия
+        if (e.synch) {
+          // Необходима синхронизация
+          if (e.synch.endsWith("?")) {
+            // Проверка условия
             let cond = e.synch.substr(0, e.synch.length - 1);
-            if (!ta.actions[cond])
-              throw `Unexpected synch: ${e.synch}`;
+            if (!ta.actions[cond]) throw `Unexpected synch: ${e.synch}`;
             console.log(`Synch[${taken.time}]: ${e.synch}`);
-            if (!ta.actions[cond](taken, ta.state))
-              continue; // Проверка не успешна
+            if (!ta.actions[cond](taken, ta.state)) continue; // Проверка не успешна
           }
         }
         ta.current = edgeName; // Далее работаем с этим ребром
@@ -78,7 +107,8 @@ class Manager {
     }
   }
 
-  nextEdge(taken, ta) { // Находимся в ребре, нужен переход
+  nextEdge(taken, ta) {
+    // Находимся в ребре, нужен переход
     let arr = ta.current.split("_");
     // После подчеркивания - имя узла, куда должны попасть
     let node = arr[1];
@@ -87,22 +117,28 @@ class Manager {
     return this.execute(taken, ta); // Рекурсивный вызов
   }
 
-  executeState(taken, ta) { // Выполнить действия в узле
+  executeState(taken, ta) {
+    // Выполнить действия в узле
     let node = ta.nodes[ta.current];
-    if (ta.actions[node]) { // Если действие в узле есть
+    if (ta.actions[node]) {
+      // Если действие в узле есть
       let action = ta.actions[node](taken, ta.state);
       if (!action && ta.state.next) return this.execute(taken, ta);
       return action;
-    } else { // Если действия в узле нет
+    } else {
+      // Если действия в узле нет
       ta.state.next = true;
       return this.execute(taken, ta); // Рекурсивный вызов
     }
   }
 
-  executeEdge(taken, ta) { // Выполнить действия в ребре
+  executeEdge(taken, ta) {
+    // Выполнить действия в ребре
     let edges = ta.edges[ta.current];
-    for (let e of edges) { // Может быть несколько ребер
-      if (e.guard) { // Выбираем "наше" ребро
+    for (let e of edges) {
+      // Может быть несколько ребер
+      if (e.guard) {
+        // Выбираем "наше" ребро
         let guard = true;
         for (let g of e.guard)
           if (!this.guard(taken, ta, g)) {
@@ -111,26 +147,29 @@ class Manager {
           }
         if (!guard) continue; // Ребро нам не подходит
       }
-      if (e.assign) { // Есть назначения в ребре
+      if (e.assign) {
+        // Есть назначения в ребре
         for (let a of e.assign) {
-          if (a.type == "timer") { // Для таймеров
-            if (!ta.state.timers[a.n])
-              throw `Unexpected timer: ${a}`;
+          if (a.type == "timer") {
+            // Для таймеров
+            console.log(a, ta.state.timers);
+            if (!ta.state.timers[a.n]) throw `Unexpected timer: ${a}`;
             ta.state.timers[a.n] = a.v;
-          } else { // Для переменных
-            if (!ta.state.variables[a.n])
-              throw `Unexpected variable: ${a}`;
+          } else {
+            // Для переменных
+            if (!ta.state.variables[a.n]) throw `Unexpected variable: ${a}`;
             ta.state.variables[a.n] = a.v;
           }
         }
       }
-      if (e.synch) { // Необходима синхронизация
+      if (e.synch) {
+        // Необходима синхронизация
         if (!e.synch.endsWith("?") && !e.synch.endsWith("!"))
           throw `Unexpected synch: ${e.synch}`;
-        if (e.synch.endsWith("!")) { // Выполнение действия
+        if (e.synch.endsWith("!")) {
+          // Выполнение действия
           let cond = e.synch.substr(0, e.synch.length - 1);
-          if (!ta.actions[cond])
-            throw `Unexpected synch: ${e.synch}`;
+          if (!ta.actions[cond]) throw `Unexpected synch: ${e.synch}`;
           // Выполнение action
           return ta.actions[cond](taken, ta.state);
         }
@@ -140,14 +179,17 @@ class Manager {
     return this.execute(taken, ta); // Рекурсивный вызов
   }
 
-  guard(taken, ta, g) { // Проверка условий
-    function taStateObject(o, ta) { /* Получение значения таймера/переменной (g.l или g.r) */
-      if (typeof o == "object") return o.v ? ta.state.variables[o.v] : ta.state.timers[o.t];
-      else
-        return o;
+  guard(taken, ta, g) {
+    // Проверка условий
+    function taStateObject(o, ta) {
+      /* Получение значения таймера/переменной (g.l или g.r) */
+      if (typeof o == "object")
+        return o.v ? ta.state.variables[o.v] : ta.state.timers[o.t];
+      else return o;
     }
 
-    function lt(ta, l, r) { // Проверка неравенства
+    function lt(ta, l, r) {
+      // Проверка неравенства
       return taStateObject(l, ta) < taStateObject(r, ta);
     }
 
@@ -155,10 +197,26 @@ class Manager {
       return taStateObject(l, ta) <= taStateObject(r, ta);
     }
 
-    switch (g.s) {
-      case "lt": return lt(ta, g.l, g.r);
-      case "lte": return lte(ta, g.l, g.r);
-      default: throw `Unexpected guard: ${JSON.stringify(g)}`;
+    function eq(ta, l, r) {
+      // Проверка неравенства
+      return taStateObject(l, ta) == taStateObject(r, ta);
+    }
+
+    function gt(ta, l, r) {
+      // Проверка неравенства
+      return taStateObject(l, ta) > taStateObject(r, ta);
+    }
+
+    if (g.s === "lt") {
+      return lt(ta, g.l, g.r);
+    } else if (g.s === "eq") {
+      return eq(ta, g.l, g.r);
+    } else if (g.s === "lte") {
+      return lte(ta, g.l, g.r);
+    } else if (g.s === "gt") {
+      return gt(ta, g.l, g.r);
+    } else {
+      throw `Unexpected guard: ${JSON.stringify(g)}`;
     }
   }
 }

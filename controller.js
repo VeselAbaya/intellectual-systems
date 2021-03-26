@@ -41,8 +41,8 @@ module.exports = class Controller {
   parseSeenObjects(seenObjects) {
     let flags = [];
     let otherPlayers = [];
-    let gates = {};
-    let ball = {};
+    let gates = [];
+    let ball = undefined;
     seenObjects.forEach((o) => {
       switch (o.name[0]) {
         case "f":
@@ -58,11 +58,11 @@ module.exports = class Controller {
           ball = o;
           break;
         case "g":
-          o.name = typeof o.name === 'string' ? o.name : o.name.join("");
-          const gCoords = Flags[o.name];
+          // o.name = o.name.join("");
+          const gCoords = Flags[o.name.join("")];
           o.x = gCoords.x;
           o.y = gCoords.y;
-          gates[o.name] = o;
+          gates.push(o);
           break;
         default:
           break;
@@ -103,11 +103,11 @@ module.exports = class Controller {
           setTimeout(() => this.restartAgentPosition(), 500);
         }
       } else {
-        this.manager.setHearData({
-          time: time,
-          who: info[0],
-          msg: info[1],
-        });
+        // this.manager.setHearData({
+        //   time: time,
+        //   who: info[0],
+        //   msg: info[1],
+        // });
       }
       return;
     } else if (cmd == "see") {
@@ -131,31 +131,30 @@ module.exports = class Controller {
         })
       );
     } else if (cmd == "sense_body") {
-      const [
-        [viewMode, ...viewArgs],
-        [stamina, staminaEffort],
-        [speed, ...speedArgs],
-        [headAngle, hAngle],
-        ...counters
-      ] = info;
-
-      this.senseBody = {
-        viewMode: viewArgs,
-        stamina: staminaEffort,
-        speed: speedArgs,
-        headAngle: hAngle,
-        counters: counters,
-      };
+      // const [
+      //   [viewMode, ...viewArgs],
+      //   [stamina, staminaEffort],
+      //   [speed, ...speedArgs],
+      //   [headAngle, hAngle],
+      //   ...counters
+      // ] = info;
+      // this.senseBody = {
+      //   viewMode: viewArgs,
+      //   stamina: staminaEffort,
+      //   speed: speedArgs,
+      //   headAngle: hAngle,
+      //   counters: counters,
+      // };
     }
 
-    if (
-      !this.senseBody ||
-      Object.keys(this.senseBody).length === 0 ||
-      !this.seenObjects ||
-      this.seenObjects.length === 0
-    ) {
-      return;
-    }
+    // if (
+    //   !this.senseBody ||
+    //   Object.keys(this.senseBody).length === 0 ||
+    //   !this.seenObjects ||
+    //   this.seenObjects.length === 0
+    // ) {
+    //   return;
+    // }
 
     const [
       flagsData,
@@ -202,43 +201,47 @@ module.exports = class Controller {
       player.x = otherPlayerPos.x;
       player.y = otherPlayerPos.y;
     });
-    const ballPos = calcObjectCoordsByFlags([
-      {
-        x: this.agent.pos.x,
-        y: this.agent.pos.y,
-        distance: ballData.distance,
-      },
-      {
-        x: threeFlags[0].x,
-        y: threeFlags[0].y,
-        distance: calcCosTheorem(
-          threeFlags[0].direction,
-          ballData.direction,
-          threeFlags[0].distance,
-          ballData.distance
-        ),
-      },
-      threeFlags[1] && {
-        x: threeFlags[1].x,
-        y: threeFlags[1].y,
-        distance: calcCosTheorem(
-          threeFlags[1].direction,
-          ballData.direction,
-          threeFlags[1].distance,
-          ballData.distance
-        ),
-      },
-    ]);
-    this.ballData.x = ballPos.x;
-    this.ballData.y = ballPos.y;
+
+    if (this.ballData) {
+      const ballPos = calcObjectCoordsByFlags([
+        {
+          x: this.agent.pos.x,
+          y: this.agent.pos.y,
+          distance: ballData.distance,
+        },
+        {
+          x: threeFlags[0].x,
+          y: threeFlags[0].y,
+          distance: calcCosTheorem(
+            threeFlags[0].direction,
+            ballData.direction,
+            threeFlags[0].distance,
+            ballData.distance
+          ),
+        },
+        threeFlags[1] && {
+          x: threeFlags[1].x,
+          y: threeFlags[1].y,
+          distance: calcCosTheorem(
+            threeFlags[1].direction,
+            ballData.direction,
+            threeFlags[1].distance,
+            ballData.distance
+          ),
+        },
+      ]);
+
+      this.ballData.x = ballPos.x;
+      this.ballData.y = ballPos.y;
+    }
 
     this.manager.setSeenObjects(
       time,
       {
-        flagsData,
-        otherPlayers,
-        gatesData,
-        ballData,
+        flagsData: this.flagsData,
+        otherPlayers: this.otherPlayers,
+        gatesData: this.gatesData,
+        ballData: this.ballData,
       },
       this.agent.teamName,
       this.agent.side
@@ -246,7 +249,8 @@ module.exports = class Controller {
 
     this.manager.taken.pos = this.agent.pos;
 
-    if (this.stateMachine) {
+    if (this.stateMachine && this.agent.run) {
+      this.agent._log(this.manager.taken);
       this.agent.act = this.manager.getAction(this.stateMachine);
     }
   }

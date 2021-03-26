@@ -1,15 +1,16 @@
 const Agent = require("./agent");
 const Controller = require("./controller");
 const initAgent = require("./socket");
-const {TA} = require("./state-machine-lab5");
+const {
+  goalieStateMachine,
+  playerStateMachine,
+} = require("./state-machine-lab5");
 const VERSION = 7;
 
-const [teamName, x, y] = process.argv.slice(2);
+const [x, y] = process.argv.slice(2);
 
 const agent1 = new Agent(x, y, { debug: false });
-const agent2 = new Agent(x - 15, y - 7, { debug: true });
-const agent3 = new Agent(-45, 0, { agentType: "(goalie)" });
-const agent4 = new Agent(-49, 15, { });
+const agent2 = new Agent(-40, 0, { debug: true, agentType: "(goalie)" });
 
 // const targets = [
 //   { act: "flag", name: "frb" },
@@ -19,32 +20,17 @@ const agent4 = new Agent(-49, 15, { });
 // ];
 
 const controller1 = new Controller();
-// controller1.setDecisionTree(firstPlayerTree(teamName));
+controller1.setStateMachine(playerStateMachine);
 agent1.setController(controller1);
 
 const controller2 = new Controller();
-// controller2.setDecisionTree(secondPlayerTree(teamName));
+controller2.setStateMachine(goalieStateMachine);
 agent2.setController(controller2);
 
-const controller3 = new Controller();
-controller3.setStateMachine(TA);
-agent3.setController(controller3);
-
-const controller4 = new Controller();
-agent4.setController(controller4);
+setTimeout(() => {
+  initAgent(agent1, "teama", VERSION);
+}, 0);
 
 setTimeout(() => {
-  initAgent(agent1, teamName, VERSION);
-}, 100);
-
-setTimeout(() => {
-  initAgent(agent2, teamName, VERSION);
-}, 100);
-
-setTimeout(() => {
-  initAgent(agent3, 'VVVSASESFeFE', VERSION);
-}, 100);
-
-setTimeout(() => {
-  initAgent(agent4, 'VVVSASESFeFE', VERSION);
-}, 100);
+  initAgent(agent2, "teamb", VERSION);
+}, 1000);
