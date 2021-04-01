@@ -1,75 +1,50 @@
-const Msg = require("./msg"); //Подключение модуля разбора сообщений от сервера
-const readline = require("readline"); //Подключение модуля ввода из командной строки
-const taGoalie = require("./ta_golie");
-const taKicker = require("./ta_kicker");
-const taManager = require("./ta_manager");
+const Msg = require("./msg");
+const Manager = require("./manager");
 
 class Agent {
-  constructor(playerType) {
-    this.position = "l"; //По умолчанию - левая половина поля
-    this.run = false; //Игра начата
+  constructor(playerType, x = 0, y = 0, ta) {
+    this.position = "l";
+    this.run = false;
     this.isMoved = false;
     this.turnSpeed = -5;
-    this.coord = { x: 0, y: 0 };
+    this.coord = { x, y };
     this.isLock = false;
     this.angle = 0;
     this.speed = 0;
     this.playerType = playerType;
-    this.act = null; //Действия
+    this.act = null;
+    this.taManager = new Manager();
+    this.ta = ta;
 
-    this.rl = readline.createInterface({
-      //Чтение консоли
-      input: process.stdin,
-      output: process.stdout,
-    });
-    this.rl.on("line", (input) => {
-      //Обработка строки из консоли
-      if (!this.run && !this.isMoved) {
-        var coords = input.split(" ");
+    if (!this.run && !this.isMoved) {
+      this.isMoved = true;
+      setTimeout(() => this.socketSend("move", x + " " + y), 1000);
 
-        if (isNaN(coords[0]) || isNaN(coords[1])) {
-          console.log("Неверный формат параметров.");
-          return;
-        }
-
-        var x = parseInt(coords[0]);
-        var y = parseInt(coords[1]);
-
-        this.isMoved = true;
-        this.socketSend("move", x + " " + y);
-
-        if (this.playerType === "g") {
-          this.teamName = "goalieTeam";
-        } else {
-          this.teamName = "teamA";
-        }
-
-        console.log("Стартовые параметры заданы x: %s, y: %s", x, y);
+      if (this.playerType === "g") {
+        this.teamName = "goalieTeam";
+      } else {
+        this.teamName = "teamA";
       }
-    });
+    }
   }
 
   msgGot(msg) {
-    //Получение сообещения
-    let data = msg.toString("utf8"); //Приведение к строке
-    this.processMsg(data); //Разбор сообщения
+
+    let data = msg.toString("utf8");
+    this.processMsg(data);
   }
 
   setSocket(socket) {
-    //Настройка сокета
     this.socket = socket;
   }
 
   socketSend(cmd, value) {
-    //Отправка команды
     this.socket.sendMsg(`(${cmd} ${value})`);
   }
 
   processMsg(msg) {
-    //Обработка сообщения
-    let data = Msg.parseMsg(msg); //Разбор сообщения
+    let data = Msg.parseMsg(msg);
     if (!data) throw new Error("Parse error \n" + msg);
-    //Первое (hear) - начало игры
     if (data.cmd === "hear" && data.msg.includes("play_on")) {
       this.run = true;
     }
@@ -78,41 +53,28 @@ class Agent {
       this.run = false;
     }
 
-    if (data.cmd === "init") this.initAgent(data.p); //Инициализация
-    this.analyzeEnv(data.msg, data.cmd, data.p); //Обработка
+    if (data.cmd === "init") this.initAgent(data.p);
+    this.analyzeEnv(data.msg, data.cmd, data.p);
   }
 
   initAgent(p) {
-    if (p[0] === "r") this.position = "r"; //Правая половина поля
-    if (p[1]) this.id = p[1]; //id игрока
+    if (p[0] === "r") this.position = "r";
+    if (p[1]) this.id = p[1];
   }
 
   analyzeEnv(msg, cmd, p) {
-    //Анализ сообщения
     if (cmd === "see" && this.run && this.isMoved) {
-      if (this.playerType === "g") {
-        var action = taManager.getAction(
-          p,
-          taGoalie.TA,
-          this.teamName,
-          this.position
-        );
-        if (action !== undefined) {
-          this.socketSend(action.n, action.v);
-        }
-      } else {
-        var action = taManager.getAction(
-          p,
-          taKicker.TA,
-          this.teamName,
-          this.position
-        );
-        if (action !== undefined) {
-          this.socketSend(action.n, action.v);
-        }
+      var action = this.taManager.getAction(
+        p,
+        this.ta,
+        this.teamName,
+        this.position
+      );
+      if (action !== undefined) {
+        this.socketSend(action.n, action.v);
       }
     }
   }
 }
 
-module.exports = Agent; //Экспорт агента
+module.exports = Agent;

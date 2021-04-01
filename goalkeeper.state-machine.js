@@ -1,4 +1,4 @@
-const TA = {
+module.exports = {
   current: "start", // Текущее состояние автомата
   state: {
     // Описание состояния
@@ -24,15 +24,13 @@ const TA = {
      * для перехода по ребру. Знак lt - меньше, lte - меньше
      * либо равно. В качестве параметров принимаются числа или
      * значения переменных "v" или таймеров "t" */
-    start_close: [{ guard: [{ s: "lt", l: { v: "dist" }, r: 2 }] }],
-    start_near: [
-      {
-        guard: [
-          { s: "lt", l: { v: "dist" }, r: 10 },
-          { s: "lte", l: 2, r: { v: "dist" } },
-        ],
-      },
-    ],
+    start_close: [{ guard: [{ s: "lt", l: { v: "dist" }, r: 1.5 }] }],
+    start_near: [{
+      guard: [
+        { s: "lt", l: { v: "dist" }, r: 10 },
+        { s: "lte", l: 2, r: { v: "dist" } },
+      ],
+    }],
     start_far: [{ guard: [{ s: "lte", l: 10, r: { v: "dist" } }] }],
     close_catch: [{ synch: "catch!" }],
     /* Событие синхронизации synch вызывает на выполнение
@@ -89,7 +87,6 @@ const TA = {
   actions: {
     init(taken, state) {
       // Инициализация игрока
-      state.local.goalie = true;
       state.local.catch = 0;
     },
     beforeAction(taken, state) {
@@ -99,30 +96,37 @@ const TA = {
     catch(taken, state) {
       // Ловим мяч
       if (!taken.ball) {
+        console.log('no BALL')
         state.next = true;
         return;
       }
+      console.log('BALL')
       let angle = taken.ball.angle;
       let dist = taken.ball.dist;
       state.next = false;
       if (dist > 0.5) {
-        if (state.local.goalie) {
-          if (state.local.catch < 3) {
-            state.local.catch++;
-            return { n: "catch", v: angle };
-          } else state.local.catch = 0;
+        if (state.local.catch < 3) {
+          console.log('CATCH');
+          state.local.catch++;
+          return { n: "catch", v: angle };
+        } else {
+          state.local.catch = 0
         }
+
         if (Math.abs(angle) > 15) return { n: "turn", v: angle };
         return { n: "dash", v: 20 };
       }
+      console.log('DIST > 0.5')
       state.next = true;
     },
     kick(taken, state) {
       // Пинаем мяч
       state.next = true;
       if (!taken.ball) return;
+
       let dist = taken.ball.dist;
       if (dist > 0.5) return;
+
       let goal = taken.goal;
       let player = taken.team ? taken.team[0] : null;
       let target;
@@ -131,7 +135,7 @@ const TA = {
       else if (player) target = player;
       if (target)
         return { n: "kick", v: `${target.dist * 2 + 40} ${target.angle}` };
-      return { n: "kick", v: "30 45" };
+      return { n: "kick", v: "50 180" };
     },
     goBack(taken, state) {
       // Возврат к воротам
@@ -191,7 +195,6 @@ const TA = {
       }
     },
     canIntercept(taken, state) {
-      // Можем добежать первыми
       let ball = taken.ball;
       let ballPrev = taken.ballPrev;
       state.next = true;
@@ -201,12 +204,12 @@ const TA = {
           let degrees =
             Math.sign(rival.angle) === Math.sign(ball.angle)
               ? Math.max(Math.abs(rival.angle), Math.abs(ball.angle)) -
-                Math.min(Math.abs(rival.angle), Math.abs(rival.angle))
+              Math.min(Math.abs(rival.angle), Math.abs(rival.angle))
               : Math.abs(rival.angle) + Math.abs(ball.angle);
           const rivalDistanceToBall = Math.sqrt(
             rival.dist ** 2 +
-              ball.dist ** 2 -
-              2 * rival.dist * ball.dist * Math.cos((degrees * Math.PI) / 180)
+            ball.dist ** 2 -
+            2 * rival.dist * ball.dist * Math.cos((degrees * Math.PI) / 180)
           );
           return rivalDistanceToBall < ball.dist;
         });
@@ -217,7 +220,6 @@ const TA = {
       return ball.dist <= ballPrev.dist + 0.5;
     },
     runToBall(taken, state) {
-      // Бежим к мячу
       state.next = false;
       let ball = taken.ball;
       if (!ball) return this.goBack(taken, state);
@@ -233,16 +235,11 @@ const TA = {
       return { n: "dash", v: 110 };
     },
     ok(taken, state) {
-      // Ничего делать не надо
       state.next = true;
       return { n: "turn", v: 0 };
     },
     empty(taken, state) {
       state.next = true;
-    }, // Пустое действие
+    }
   },
-};
-
-module.exports = {
-  TA: TA,
 };

@@ -1,9 +1,0 @@
-rcssmonitor-16.0.0
-
-Copyright (C) 2009 - 2020 RoboCup Soccer Simulator Maintenance Group.
-
-Connect to [127.0.0.1] ...
-send: (dispinit version 4)
-updated server port number = 40069
-send: (dispstart)
-send: (dispbye)

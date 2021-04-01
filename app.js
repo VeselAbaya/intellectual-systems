@@ -1,13 +1,9 @@
-const Agent = require("./agent"); //Импорт агента
-const VERSION = 7; //Версия сервера
-let teamName = "teamA"; //Имя команды
-let playerType = "k";
-if (process.argv.length >= 3) {
-  playerType = process.argv[2];
-  if (process.argv[2] === "g") {
-    teamName = "goalieTeam";
-  }
-}
-let agent = new Agent(playerType); //Создание экземпляра агента
-require("./socket")(agent, teamName, VERSION); //Настройка сокета
-// agent.socketSend("move",`-25 -10`); //Размещение игрока на поле
+const Agent = require("./agent");
+const socket = require("./socket");
+const kickerSM = require("./kicker.state-machine");
+const goalkeeperSM = require("./goalkeeper.state-machine");
+const VERSION = 7;
+const [team, playerType, x, y] = process.argv.slice(2);
+
+let agent = new Agent(playerType, parseInt(x), parseInt(y), playerType === 'k' ? kickerSM : goalkeeperSM);
+socket(agent, team, VERSION);

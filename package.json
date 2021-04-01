@@ -1,0 +1,19 @@
+{
+  "name": "intellectual-systems",
+  "version": "1.0.0",
+  "description": "",
+  "main": "agent.js",
+  "scripts": {
+    "start": "./start.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://VeselAbaya:hiteno57@github.com/VeselAbaya/intellectual-systems.git"
+  },
+  "author": "Antay & Sergay",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/VeselAbaya/intellectual-systems/issues"
+  },
+  "homepage": "https://github.com/VeselAbaya/intellectual-systems#readme"
+}

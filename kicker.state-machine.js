@@ -1,4 +1,4 @@
-const TA = {
+module.exports = {
     current: "start", // Текущее состояние автомата
     state: { // Описание состояния
         variables: { dist: null, angle: null }, // Переменные
@@ -48,7 +48,7 @@ const TA = {
             }
 
             if(taken.goal !== undefined) {
-                return {n: "kick", v:`40 ${taken.goal.angle}`};
+                return {n: "kick", v:`55 ${taken.goal.angle}`};
             }
 
             return {n: "kick", v: "10 45"}
@@ -85,8 +85,4 @@ const TA = {
         },
         empty(taken, state) { state.next = true } // Пустое действие
     }
-};
-
-module.exports = {
-    TA: TA
 };
