@@ -1,12 +1,9 @@
 function getDistanceForOtherPlayer(player, flags) {
   const newFlags = []
   newFlags.push(player)
-  flags.forEach((flag) => {
-    const distanceForFlag = flag.p[0]
-    const distanceForPlayer = player.p[0]
+  flags.forEach(flag => {
     const distanceBetweenFlagAndPlayer = Math.sqrt(Math.abs(
-        this.getPow2(distanceForFlag) + this.getPow2(distanceForPlayer)
-        - 2 * distanceForPlayer * distanceForFlag * Math.cos(Math.abs(flag.p[1] - player.p[1]) * Math.PI / 180)
+      square(flag.p[0]) + square(player.p[0]) - 2*player.p[0]*flag.p[0]*Math.cos(Math.abs(flag.p[1] - player.p[1]) * Math.PI/180)
     ))
     newFlags.push(flag)
     newFlags[newFlags.length - 1].p[0] = distanceBetweenFlagAndPlayer
@@ -16,7 +13,7 @@ function getDistanceForOtherPlayer(player, flags) {
 function getAnswerForTwoFlags(p, Flags) {
   let coords = []
   let distance = []
-  p.forEach((q) => {
+  p.forEach(q => {
     if (q.cmd) {
       coords.push(Flags[q.cmd.p.join('')])
       distance.push(q.p[0])
@@ -29,24 +26,25 @@ function getAnswerForTwoFlags(p, Flags) {
     } else if (coords[0].y === coords[1].y) {
       answer = this.coordsForSeemY(coords, distance, 0, 1)
     } else {
-      const alpha = (coords[0].y - coords[1].y)
-          / (coords[1].x - coords[0].x)
-      const beta = (this.getPow2(coords[1].y) - this.getPow2(coords[0].y)
-          + this.getPow2(coords[1].x) - this.getPow2(coords[0].x)
-          + this.getPow2(distance[0]) - this.getPow2(distance[1]))
-          / (2 * (coords[1].x - coords[0].x))
-      const a = this.getPow2(alpha) + 1
+      const alpha = (coords[0].y - coords[1].y) / (coords[1].x - coords[0].x)
+      const beta = (
+        square(coords[1].y) - square(coords[0].y) +
+        square(coords[1].x) - square(coords[0].x) +
+        square(distance[0]) - square(distance[1])
+      ) / (2 * (coords[1].x - coords[0].x))
+      const a = square(alpha) + 1
       const b = -2 * (alpha * (coords[0].x - beta) + coords[0].y)
-      const c = this.getPow2(coords[0].x - beta) + this.getPow2(coords[0].y)
-          - this.getPow2(distance[0])
-      const ys = []
-      ys.push((-b + Math.sqrt(this.getPow2(b) - 4 * a * c)) / (2 * a))
-      ys.push((-b - Math.sqrt(this.getPow2(b) - 4 * a * c)) / (2 * a))
-      const xs = []
-      xs.push(coords[0].x + Math.sqrt(this.getPow2(distance[0]) - this.getPow2(ys[0] - coords[0].y)))
-      xs.push(coords[0].x - Math.sqrt(this.getPow2(distance[0]) - this.getPow2(ys[0] - coords[0].y)))
-      xs.push(coords[0].x + Math.sqrt(this.getPow2(distance[0]) - this.getPow2(ys[1] - coords[0].y)))
-      xs.push(coords[0].x - Math.sqrt(this.getPow2(distance[0]) - this.getPow2(ys[1] - coords[0].y)))
+      const c = square(coords[0].x - beta) + square(coords[0].y) - square(distance[0])
+      const ys = [
+        (-b + Math.sqrt(square(b) - 4 * a * c)) / (2 * a),
+        (-b - Math.sqrt(square(b) - 4 * a * c)) / (2 * a)
+      ]
+      const xs = [
+        coords[0].x + Math.sqrt(square(distance[0]) - square(ys[0] - coords[0].y)),
+        coords[0].x - Math.sqrt(square(distance[0]) - square(ys[0] - coords[0].y)),
+        coords[0].x + Math.sqrt(square(distance[0]) - square(ys[1] - coords[0].y)),
+        coords[0].x - Math.sqrt(square(distance[0]) - square(ys[1] - coords[0].y))
+      ]
       answer = this.checkAnswersForTwoFlags(xs, ys)
     }
     return answer
@@ -64,129 +62,106 @@ function checkAnswersForTwoFlags(xs, ys) {
       answerY = ys[ind]
     }
   })
-  return { x: answerX, y:answerY }
+  return { x: answerX, y: answerY }
 }
 function coordsForSeemX(coords, distance, q0, q1, q2) {
-  const y = (this.getPow2(coords[q1].y) - this.getPow2(coords[q0].y)
-      + this.getPow2(distance[q0]) - this.getPow2(distance[q1]))
-      / (2*(coords[q1].y - coords[q0].y))
-  const xs = []
-  xs.push(coords[q0].x + Math.sqrt(Math.abs(this.getPow2(distance[q0])
-      - this.getPow2(y - coords[q0].y))))
-  xs.push(coords[q0].x - Math.sqrt(Math.abs(this.getPow2(distance[q0])
-      - this.getPow2(y - coords[q0].y))))
-  let answer = null
+  const y = (
+    square(coords[q1].y) - square(coords[q0].y) +
+    square(distance[q0]) - square(distance[q1])
+  ) / (2 * (coords[q1].y - coords[q0].y))
+  const xs = [
+    coords[q0].x + Math.sqrt(Math.abs(square(distance[q0]) - square(y - coords[q0].y))),
+    coords[q0].x - Math.sqrt(Math.abs(square(distance[q0]) - square(y - coords[q0].y)))
+  ]
+  let answer
   if (q2) {
-    const forX1 = Math.abs(this.getPow2(xs[0] - coords[q2].x)
-        + this.getPow2(y - coords[q2].y) - this.getPow2(distance[q2]))
-    const forX2 = Math.abs(this.getPow2(xs[1] - coords[q2].x)
-        + this.getPow2(y - coords[q2].y) - this.getPow2(distance[q2]))
-    if (forX1 - forX2 > 0) {
-      answer = {x: xs[1], y}
-    } else {
-      answer = {x: xs[0], y}
-    }
+    const forX1 = Math.abs(square(xs[0] - coords[q2].x) + square(y - coords[q2].y) - square(distance[q2]))
+    const forX2 = Math.abs(square(xs[1] - coords[q2].x) + square(y - coords[q2].y) - square(distance[q2]))
+    answer = forX1 - forX2 > 0
+      ? {x: xs[1], y}
+      : {x: xs[0], y}
   } else {
-    if (Math.abs(xs[0]) <= 54) {
-      answer = {x: xs[0], y}
-    } else {
-      answer = {x: xs[1], y}
-    }
+    answer = Math.abs(xs[0]) <= 54
+      ? {x: xs[0], y}
+      : {x: xs[1], y}
   }
   return answer
 }
 function coordsForSeemY(coords, distance, q0, q1, q2) {
-  const x = (this.getPow2(coords[q1].x) - this.getPow2(coords[q0].x)
-      + this.getPow2(distance[q0]) - this.getPow2(distance[q1]))
-      / (2*(coords[q1].x - coords[q0].x))
-  const ys = []
-  ys.push(coords[q0].y + Math.sqrt(Math.abs(this.getPow2(distance[q0])
-      - this.getPow2(x - coords[q0].x))))
-  ys.push(coords[q0].y - Math.sqrt(Math.abs(this.getPow2(distance[q0])
-      - this.getPow2(x - coords[q0].x))))
-  let answer = null
+  const x = (
+    square(coords[q1].x) - square(coords[q0].x) +
+    square(distance[q0]) - square(distance[q1])
+  ) / (2*(coords[q1].x - coords[q0].x))
+  const ys = [
+    coords[q0].y + Math.sqrt(Math.abs(square(distance[q0]) - square(x - coords[q0].x))),
+    coords[q0].y - Math.sqrt(Math.abs(square(distance[q0]) - square(x - coords[q0].x)))
+  ]
+  let answer
   if (q2) {
-    const forY1 = Math.abs(this.getPow2(x - coords[q2].x)
-        + this.getPow2(ys[0] - coords[q2].y) - this.getPow2(distance[q2]))
-    const forY2 = Math.abs(this.getPow2(x - coords[q2].x)
-        + this.getPow2(ys[1] - coords[q2].y) - this.getPow2(distance[q2]))
-    if (forY1 - forY2 > 0) {
-      answer = { x, y: ys[1] }
-    } else {
-      answer = { x, y: ys[0] }
-    }
+    const forY1 = Math.abs(square(x - coords[q2].x) + square(ys[0] - coords[q2].y) - square(distance[q2]))
+    const forY2 = Math.abs(square(x - coords[q2].x) + square(ys[1] - coords[q2].y) - square(distance[q2]))
+    answer = forY1 - forY2 > 0
+      ? {x, y: ys[1]}
+      : {x, y: ys[0]}
   } else {
-    if (Math.abs(ys[0]) <= 32) {
-      answer = { x, y: ys[0] }
-    } else {
-      answer = { x, y: ys[1] }
-    }
+    answer = Math.abs(ys[0]) <= 32
+      ? {x, y: ys[0]}
+      : {x, y: ys[1]}
   }
   return answer
 }
 function getAnswerForThreeFlags(p, Flags) {
   let coords = []
   let distance = []
-  p.forEach((q) => {
-    if (q.cmd && coords.length < 3) {
-      if (q.cmd.p && Flags[q.cmd.p.join('')]
-          && coords.filter((c) => c.x === Flags[q.cmd.p.join('')].x).length < 2
-          && coords.filter((c) => c.y === Flags[q.cmd.p.join('')].y).length < 2) {
-        coords.push(Flags[q.cmd.p.join('')])
-        distance.push(q.p[0])
-      }
+  p.forEach(q => {
+    if (q.cmd && coords.length < 3 &&
+        q.cmd.p && Flags[q.cmd.p.join('')] &&
+        coords.filter((c) => c.x === Flags[q.cmd.p.join('')].x).length < 2 &&
+        coords.filter((c) => c.y === Flags[q.cmd.p.join('')].y).length < 2) {
+      coords.push(Flags[q.cmd.p.join('')])
+      distance.push(q.p[0])
     }
   })
   if (coords.length < 3) {
     return this.getAnswerForTwoFlags(p, Flags)
   } else {
-    let answerY = null
-    let answerX = null
+    let answer
     if (coords[0].x === coords[1].x) {
-      const answer = this.coordsForSeemX(coords, distance, 0, 1, 2)
-      answerX = answer.x
-      answerY = answer.y
+      answer = this.coordsForSeemX(coords, distance, 0, 1, 2)
     } else if (coords[0].x === coords[2].x) {
-      const answer = this.coordsForSeemX(coords, distance, 0, 2, 1)
-      answerX = answer.x
-      answerY = answer.y
+      answer = this.coordsForSeemX(coords, distance, 0, 2, 1)
     } else if (coords[1].x === coords[2].x) {
-      const answer = this.coordsForSeemX(coords, distance, 1, 2, 0)
-      answerX = answer.x
-      answerY = answer.y
+      answer = this.coordsForSeemX(coords, distance, 1, 2, 0)
     } else if (coords[0].y === coords[1].y) {
-      const answer = this.coordsForSeemY(coords, distance, 0, 1, 2)
-      answerX = answer.x
-      answerY = answer.y
+      answer = this.coordsForSeemY(coords, distance, 0, 1, 2)
     } else if (coords[0].y === coords[2].y) {
-      const answer = this.coordsForSeemY(coords, distance, 0, 2, 1)
-      answerX = answer.x
-      answerY = answer.y
+      answer = this.coordsForSeemY(coords, distance, 0, 2, 1)
     } else if (coords[1].y === coords[2].y) {
-      const answer = this.coordsForSeemY(coords, distance, 1, 2, 0)
-      answerX = answer.x
-      answerY = answer.y
+      answer = this.coordsForSeemY(coords, distance, 1, 2, 0)
     } else {
-      const alpha1 = (coords[0].y - coords[1].y)
-          / (coords[1].x - coords[0].x)
-      const beta1 = (this.getPow2(coords[1].y) - this.getPow2(coords[0].y)
-          + this.getPow2(coords[1].x) - this.getPow2(coords[0].x)
-          + this.getPow2(distance[0]) - this.getPow2(distance[1]))
-          / (2 * (coords[1].x - coords[0].x))
-      const alpha2 = (coords[0].y - coords[2].y)
-          / (coords[2].x - coords[0].x)
-      const beta2 = (this.getPow2(coords[2].y) - this.getPow2(coords[0].y)
-          + this.getPow2(coords[2].x) - this.getPow2(coords[0].x)
-          + this.getPow2(distance[0]) - this.getPow2(distance[2]))
-          / (2 * (coords[2].x - coords[0].x))
-      answerY = (beta1 - beta2) / (alpha2 - alpha1)
-      answerX = alpha1 * answerY + beta1
+      const alpha1 = (coords[0].y - coords[1].y) / (coords[1].x - coords[0].x)
+      const beta1 = (
+        square(coords[1].y) - square(coords[0].y) +
+        square(coords[1].x) - square(coords[0].x) +
+        square(distance[0]) - square(distance[1])
+      ) / (2 * (coords[1].x - coords[0].x))
+      const alpha2 = (coords[0].y - coords[2].y) / (coords[2].x - coords[0].x)
+      const beta2 = (
+        square(coords[2].y) - square(coords[0].y) +
+        square(coords[2].x) - square(coords[0].x) +
+        square(distance[0]) - square(distance[2])
+      ) / (2 * (coords[2].x - coords[0].x))
+      answer = {
+        x: alpha1 * (beta1 - beta2) / (alpha2 - alpha1) + beta1,
+        y: (beta1 - beta2) / (alpha2 - alpha1)
+      }
     }
-    return {x: answerX, y: answerY}
+    return answer
   }
 }
-function getPow2(x) {
-  return x*x
+
+function square(val) {
+  return val * val
 }
 
 const FlagsCoords = {
@@ -222,4 +197,4 @@ const FlagsCoords = {
   },
 }
 module.exports = {getDistanceForOtherPlayer, getAnswerForTwoFlags, checkAnswersForTwoFlags,
-  coordsForSeemX, coordsForSeemY, getAnswerForThreeFlags, getPow2, FlagsCoords}
+  coordsForSeemX, coordsForSeemY, getAnswerForThreeFlags, getPow2: square, FlagsCoords}
