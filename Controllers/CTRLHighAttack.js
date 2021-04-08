@@ -1,10 +1,10 @@
 const CTRL_HIGH = {
   execute(input) {
     const immediate = this.immediateReaction(input)
-    if(immediate) return immediate
+    if (immediate) return immediate
     const defend = this.defendGoal(input)
-    if(defend) return defend
-    if(this.last == "defend")
+    if (defend) return defend
+    if (this.last == "defend")
       input.newAction = "return"
     this.last = "previous"
   },
