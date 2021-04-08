@@ -1,4 +1,4 @@
-const coordsApi = require('./getCoords')
+const coordsApi = require('getCoords')
 const FlagsCoords = {
     ftl50: {x: -50, y: 39}, ftl40: {x: -40, y: 39},
     ftl30: {x: -30, y: 39}, ftl20: {x: -20, y: 39},

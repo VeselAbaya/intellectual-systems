@@ -22,16 +22,13 @@ class Agent {
     this.sendCmd() // Отправка команды
   }
 
-
   setSocket(socket) { // Настройка сокета
     this.socket = socket
   }
 
-
   socketSend(cmd, value) { // Отправка команды
     this.socket.sendMsg(`(${cmd} ${value})`)
   }
-
 
   processMsg(msg) { // Обработка сообщения
     let data = Msg.parseMsg(msg) // Разбор сообщения
@@ -44,7 +41,6 @@ class Agent {
     if (data.cmd == "init") this.initAgent(data.p) //Инициализация
     this.analyzeEnv(data.msg, data.cmd, data.p) // Обработка
   }
-
 
   initAgent(p) {
     if (p[0] == "r") this.position = "r" // Правая половина поля
@@ -99,18 +95,14 @@ class Agent {
   }
 
   sendCmd() {
-    if (this.run) { // Игра начата
-      if (this.act) { // Есть команда от игрока
-        if (this.act.n !== "move") // Пнуть мяч
-          this.socketSend(this.act.n, this.act.v)
-        else {
-          this.socketSend(this.act.n, this.act.v)
-          this.run = false
-        }
+    if (this.run) {
+      if (this.act) {
+        this.socketSend(this.act.n, this.act.v)
+        this.run = this.act.n !== "move";
       }
-      this.act = null // Сброс команды
+      this.act = null
     }
   }
 }
 
-module.exports = Agent // Экспорт игрока
+module.exports = Agent

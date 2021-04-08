@@ -41,6 +41,9 @@ const CTRL_MIDDLE = {
       this.action = "return"
       return this.actionReturn(input)
     }
+    if (input.ball) {
+      return {n: "turn", v: input.ball.angle}
+    }
     if(input.flags[this.turnData]) {
       if(Math.abs(input.flags[this.turnData].angle) > 10)
         return {n: "turn", v: input.flags[this.turnData].angle}
@@ -56,8 +59,7 @@ const CTRL_MIDDLE = {
       return {n: "turn", v: (input.side === "l") ? -30 : 30}
     if(this.turnData === "fb0")
       return {n: "turn", v: (input.side === "l") ? 30 : -30}
-    throw `Unexpected state ${JSON.stringify(this)},
-${JSON.stringify(input)}`
+    throw `Unexpected state ${JSON.stringify(this)}, ${JSON.stringify(input)}`
   },
 }
 module.exports = CTRL_MIDDLE
