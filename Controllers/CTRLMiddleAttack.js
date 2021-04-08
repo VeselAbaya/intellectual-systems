@@ -50,7 +50,7 @@ const CTRL_MIDDLE = {
     if (input.flags[goal].dist > 3)
       return {n: "dash", v: 80}
     this.action = "seekBall"
-    return {n: "turn", v: 180}
+    return null
   },
   seekBall(input) { // Осмотр поля
     return input.ball

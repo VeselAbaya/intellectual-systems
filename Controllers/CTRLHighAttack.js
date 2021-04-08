@@ -11,15 +11,14 @@ const CTRL_HIGH = {
   immediateReaction(input) { // Немедленная реакция
     if(input.canKick) {
       this.last = "kick"
-      if (input.id < 8) {
-        if (input.playersListMy.length && input.id > 3) {
+      if (input.id < 8) { // центральные и нападющие
+        if (input.playersListMy.length && input.id > 3) { // центральные
           input.newAction = "return"
-          input.playersListMy.sort((p1, p2) => {
-            return p1.p[1] - p2.p[2]
-          })
+          console.log(JSON.stringify(input.playersListMy, null, 2));
+          input.playersListMy.sort((p1, p2) => p1.p[1] - p2.p[1])
           if ((!input.goalOther || input.playersListMy[0].p[1] < input.goalOther.dist - 15)
               && input.playersListMy[0].p[1] > 4 && (!input.goalOwn || input.goalOwn.dist > 25))
-            return {n: "kick", v: `${input.playersListMy[0].p[1]*2} ${input.playersListMy[0].p[0]}`}
+            return {n: "kick", v: `${input.playersListMy[0].p[0]*2} ${input.playersListMy[0].p[1]}`}
         }
         if (input.goalOther) {
           if (input.goalOther.dist > 40)
@@ -34,7 +33,7 @@ const CTRL_HIGH = {
         else if (input.flags[topFlag]) return {n: "kick", v: `80 ${input.flags[topFlag].angle}`}
         else if (input.flags[botFlag]) return {n: "kick", v: `80 ${input.flags[botFlag].angle}`}
       }
-      return {n: "kick", v: `10 45`}
+      return {n: "kick", v: `20 45`}
     }
   },
   defendGoal(input) { // Защита ворот
@@ -44,11 +43,11 @@ const CTRL_HIGH = {
           || !close[0] || (close[1] && close[1].dist > input.ball.dist)
           || !close[1]) {
         this.last = "defend"
-        if (input.id < 4 && input.goalOwn && input.goalOwn.dist < 50) {
+        if (input.id < 4 && input.goalOwn && input.goalOwn.dist < 50) { // нападающие
           input.newAction = "return"
-        } else if (input.id > 7 && input.goalOther && input.goalOther.dist < 50) {
+        } else if (input.id > 7 && input.goalOther && input.goalOther.dist < 50) { // защитники
           input.newAction = "return"
-        } else if (input.id > 3 && input.id < 8 && input.goalOwn && input.goalOwn.dist < 25){
+        } else if (input.id > 3 && input.id < 8 && input.goalOwn && input.goalOwn.dist < 25){ // защитники и центральные
           input.newAction = "return"
         }
         else {

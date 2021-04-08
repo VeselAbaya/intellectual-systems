@@ -1,7 +1,7 @@
 const getCoords = require('./getCoords')
 const Taken = {
   setSee(input, team, side, id) {
-    team === 'A' && id === 8 && console.log(team, id)
+    // team === 'A' && id === 8 && console.log(team, id)
     const filteredInput = input.filter(obj => obj.cmd)
 
     const ballObj = filteredInput.find(obj => obj.cmd.p[0] === 'b')
