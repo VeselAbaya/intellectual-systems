@@ -5,16 +5,14 @@ const CtrlLowPlayer = require('./Controllers/CTRLLowAttack')
 const CtrlHighGoalie = require('./Controllers/CTRLHighDefault')
 const CtrlMiddleGoalie = require('./Controllers/CTRLMiddleDefault')
 const CtrlLowGoalie = require('./Controllers/CTRLLowDefault')
-
+const Positions = require('./positions')
 
 class Agent {
-  constructor(speed, teamName) {
+  constructor(teamName) {
     this.position = "l" // По умолчанию - левая половина поля
-    this.speed = speed
     this.run = false // Игра начата
     this.teamName = teamName
   }
-
 
   msgGot(msg) { // Получение сообщения
     let data = msg.toString('utf8') // Приведение к строке
@@ -49,41 +47,7 @@ class Agent {
 
   analyzeEnv(msg, cmd, p) {
     if (cmd === 'hear' && (p[2].includes('goal_l_') || p[2].includes('goal_r_'))) {
-      switch(this.id) {
-        case 1:
-          this.act = {n: "move", v: `-10 0`}
-          break;
-        case 2:
-          this.act = {n: "move", v: `-5 -25`}
-          break;
-        case 3:
-          this.act = {n: "move", v: `-5 25`}
-          break;
-        case 4:
-          this.act = {n: "move", v: `-15 -15`}
-          break;
-        case 5:
-          this.act = {n: "move", v: `-15 15`}
-          break;
-        case 6:
-          this.act = {n: "move", v: `-25 -15`}
-          break;
-        case 7:
-          this.act = {n: "move", v: `-25 15`}
-          break;
-        case 8:
-          this.act = {n: "move", v: `-35 -25`}
-          break;
-        case 9:
-          this.act = {n: "move", v: `-35 0`}
-          break;
-        case 10:
-          this.act = {n: "move", v: `-35 25`}
-          break;
-        case 11:
-          this.act = {n: "move", v: `-50 0`}
-          break;
-      }
+      this.act = {n: "move", v: Positions[this.id]}
     }
     if (cmd === 'see' && this.run) {
       if (this.id < 11) {
