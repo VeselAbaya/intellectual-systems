@@ -32,9 +32,8 @@ class Agent {
     let data = Msg.parseMsg(msg) // Разбор сообщения
     if (!data) throw new Error("Parse error\n" + msg)
     // Первое (hear) - начало игры
-    if (data.cmd == "hear") {
-      if (data.msg.includes('play_on') || data.msg.includes('kick_off_'))
-        this.run = true
+    if (data.cmd == "hear" && data.msg.includes('play_on') || data.msg.includes('kick_off_')) {
+      this.run = true
     }
     if (data.cmd == "init") this.initAgent(data.p) //Инициализация
     this.analyzeEnv(data.msg, data.cmd, data.p) // Обработка
@@ -50,11 +49,9 @@ class Agent {
       this.act = {n: "move", v: Positions[this.id]}
     }
     if (cmd === 'see' && this.run) {
-      if (this.id < 11) {
-        this.act = CtrlLowPlayer.execute(p, [CtrlMiddlePlayer, CtrlHighPlayer], this.teamName, this.position, this.id)
-      } else {
-        this.act = CtrlLowGoalie.execute(p, [CtrlMiddleGoalie, CtrlHighGoalie], this.teamName, this.position, this.id)
-      }
+      this.act = this.id < 11
+        ? CtrlLowPlayer.execute(p, [CtrlMiddlePlayer, CtrlHighPlayer], this.teamName, this.position, this.id)
+        : CtrlLowGoalie.execute(p, [CtrlMiddleGoalie, CtrlHighGoalie], this.teamName, this.position, this.id);
     }
   }
 

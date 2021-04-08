@@ -196,5 +196,12 @@ const FlagsCoords = {
     return Math.sqrt((p1.x-p2.x)**2+(p1.y-p2.y)**2)
   },
 }
+
+function isNearToFlag(flagStr, point) {
+  return point &&
+         Math.abs(FlagsCoords[flagStr].x - point.x) <= 3 &&
+         Math.abs(FlagsCoords[flagStr].y - point.y) <= 3
+}
+
 module.exports = {getDistanceForOtherPlayer, getAnswerForTwoFlags, checkAnswersForTwoFlags,
-  coordsForSeemX, coordsForSeemY, getAnswerForThreeFlags, getPow2: square, FlagsCoords}
+  coordsForSeemX, coordsForSeemY, getAnswerForThreeFlags, getPow2: square, FlagsCoords, isNearToFlag}

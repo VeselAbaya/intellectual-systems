@@ -1,3 +1,5 @@
+const getCoords = require('../getCoords');
+
 const CTRL_MIDDLE = {
   action: "return",
   execute(input, controllers) {
@@ -35,7 +37,14 @@ const CTRL_MIDDLE = {
     } else if (input.id === 10) {
       goal = (input.side === 'l') ? 'fplb' : 'fprt'
     }
-    if (!input.flags[goal]) return {n: "turn", v: 60}
+    if (!input.flags[goal]) {
+      if (getCoords.isNearToFlag(goal, input.myPos)) {
+        this.action = "seekBall"
+        return null
+      }
+
+      return {n: "turn", v: 45}
+    }
     if (Math.abs(input.flags[goal].angle) > 10)
       return {n: "turn", v: input.flags[goal].angle}
     if (input.flags[goal].dist > 3)
@@ -46,7 +55,7 @@ const CTRL_MIDDLE = {
   seekBall(input) { // Осмотр поля
     return input.ball
       ? {n: "turn", v: input.ball.angle}
-      : {n: "turn", v: 45};
+      : {n: "turn", v: 45}
   },
 }
 module.exports = CTRL_MIDDLE
