@@ -29,21 +29,21 @@ const CTRL_HIGH = {
           return {n: "kick", v: `30 ${input.goalOther.angle}`}
         return {n: "kick", v: `110 ${input.goalOther.angle}`}
       }
-      return {n: "kick", v: `10 45`}
+      return {n: "kick", v: `20 45`}
     }
   },
   defendGoal(input) { // Защита ворот
     if(input.ball) {
-      const close = input.closest("b")
+      const close = input.closest(true) // из моей команды
       if ((close[0] && close[0].dist + 1 > input.ball.dist) ||
           (input.ball.dist < 20 && input.ball.dist > 1.2)) {
         this.last = "defend"
-        if (Math.abs(input.ball.angle) > 5)
+        if (Math.abs(input.ball.angle) > 10)
           return {n: "turn", v: input.ball.angle}
         else if (input.ball.dist > 1)
           return {n: "dash", v: 110}
         else
-          return {n: "dash", v: 30}
+          return {n: "dash", v: 40}
       }
     }
   },

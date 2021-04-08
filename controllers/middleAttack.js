@@ -5,7 +5,7 @@ const CTRL_MIDDLE = {
   execute(input, controllers) {
     const next = controllers[0] // Следующий уровень
     switch (this.action) {
-      case "return": input.cmd = this.actionReturnArrack(input); break;
+      case "return": input.cmd = this.actionReturn(input); break;
       case "seekBall": input.cmd = this.seekBall(input); break;
     }
     input.action = this.action
@@ -16,7 +16,7 @@ const CTRL_MIDDLE = {
       return input.cmd
     }
   },
-  actionReturnArrack(input) { // Возврат к своим воротам
+  actionReturn(input) { // Возврат к своим воротам
     let goal = ''
     if (input.id === 1) {
       goal = (input.side === 'l') ? 'fprc' : 'fplc'

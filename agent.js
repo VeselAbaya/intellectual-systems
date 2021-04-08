@@ -1,17 +1,18 @@
 const Msg = require('./msg')
-const CtrlHighPlayer = require('./Controllers/CTRLHighAttack')
-const CtrlMiddlePlayer = require('./Controllers/CTRLMiddleAttack')
-const CtrlLowPlayer = require('./Controllers/CTRLLowAttack')
-const CtrlHighGoalie = require('./Controllers/CTRLHighDefault')
-const CtrlMiddleGoalie = require('./Controllers/CTRLMiddleDefault')
-const CtrlLowGoalie = require('./Controllers/CTRLLowDefault')
+const CtrlHighPlayer = require('./controllers/highAttack')
+const CtrlMiddlePlayer = require('./controllers/middleAttack')
+const CtrlLowPlayer = require('./controllers/lowAttack')
+const CtrlHighGoalie = require('./controllers/highDefend')
+const CtrlMiddleGoalie = require('./controllers/middleDefend')
+const CtrlLowGoalie = require('./controllers/lowDefend')
 const Positions = require('./positions')
 
 class Agent {
-  constructor(teamName) {
+  constructor(teamName, goalie = false) {
     this.position = "l" // По умолчанию - левая половина поля
     this.run = false // Игра начата
     this.teamName = teamName
+    this.goalie = goalie
   }
 
   msgGot(msg) { // Получение сообщения
@@ -46,6 +47,9 @@ class Agent {
 
   analyzeEnv(msg, cmd, p) {
     if (cmd === 'hear' && (p[2].includes('goal_l_') || p[2].includes('goal_r_'))) {
+      this.act = {n: "move", v: Positions[this.id]}
+    }
+    if (cmd === 'hear' && (p[2].includes('fault')) && this.goalie) {
       this.act = {n: "move", v: Positions[this.id]}
     }
     if (cmd === 'see' && this.run) {

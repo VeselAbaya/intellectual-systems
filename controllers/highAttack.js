@@ -14,7 +14,6 @@ const CTRL_HIGH = {
       if (input.id < 8) { // центральные и нападющие
         if (input.playersListMy.length && input.id > 3) { // центральные
           input.newAction = "return"
-          console.log(JSON.stringify(input.playersListMy, null, 2));
           input.playersListMy.sort((p1, p2) => p1.p[1] - p2.p[1])
           if ((!input.goalOther || input.playersListMy[0].p[1] < input.goalOther.dist - 15)
               && input.playersListMy[0].p[1] > 4 && (!input.goalOwn || input.goalOwn.dist > 25))

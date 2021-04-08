@@ -4,7 +4,7 @@ const Positions = require('./positions');
 const VERSION = 7
 
 function createAgent(teamName, positionStr, goalie = null) {
-  let agent = new Agent(teamName)
+  let agent = new Agent(teamName, goalie)
   socket(agent, teamName, VERSION, goalie)
   setTimeout(() => {
     agent.socketSend("move", positionStr)
