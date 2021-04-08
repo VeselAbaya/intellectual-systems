@@ -17,22 +17,33 @@ const CTRL_HIGH = {
           input.playersListMy.sort((p1, p2) => p1.p[1] - p2.p[1])
           if ((!input.goalOther || input.playersListMy[0].p[1] < input.goalOther.dist - 15)
               && input.playersListMy[0].p[1] > 4 && (!input.goalOwn || input.goalOwn.dist > 25))
-            return {n: "kick", v: `${input.playersListMy[0].p[0]*2} ${input.playersListMy[0].p[1]}`}
+            return {n: "kick", v: `${input.playersListMy[0].p[0]*3} ${input.playersListMy[0].p[1]}`}
         }
         if (input.goalOther) {
-          if (input.goalOther.dist > 40)
-            return {n: "kick", v: `30 ${input.goalOther.angle}`}
-          return {n: "kick", v: `110 ${input.goalOther.angle}`}
+          if (input.goalOther.dist > 30)
+            return {n: "kick", v: `20 ${input.goalOther.angle}`}
+          return {n: "kick", v: `65 ${input.goalOther.angle}`}
         }
-      } else {
+      } else { // защитники
         input.newAction = "return"
-        const topFlag = (input.side === 'l') ? 'frt' : 'flt'
-        const botFlag = (input.side === 'l') ? 'frb' : 'flb'
-        if (input.goalOther) return {n: "kick", v: `80 ${input.goalOther.angle}`}
-        else if (input.flags[topFlag]) return {n: "kick", v: `80 ${input.flags[topFlag].angle}`}
-        else if (input.flags[botFlag]) return {n: "kick", v: `80 ${input.flags[botFlag].angle}`}
+        const topOppositeFlag = (input.side === 'l') ? 'frt' : 'flt'
+        const botOppositeFlag = (input.side === 'l') ? 'frb' : 'flb'
+        if (input.goalOther) return {n: "kick", v: `100 ${input.goalOther.angle}`}
+        else if (input.flags[topOppositeFlag]) return {n: "kick", v: `100 ${input.flags[topOppositeFlag].angle}`}
+        else if (input.flags[botOppositeFlag]) return {n: "kick", v: `100 ${input.flags[botOppositeFlag].angle}`}
+
+        const topFlag = input.side === 'l' ? 'flt' : 'frt'
+        const botFlag = input.side === 'l' ? 'flb' : 'frb'
+        const goalFlag = input.side === 'l' ? 'fl0' : 'fr0'
+        if (input.flags[topFlag] && ((input.side === 'r' && input.id === 10) ||
+                                     (input.side === 'l' && input.id === 8)) ||
+            input.flags[botFlag] && ((input.side === 'r' && input.id === 8) ||
+                                     (input.side === 'l' && input.id === 10)) ||
+            input.flags[goalFlag] && input.id === 9) {
+          return {n: 'kick', v: `100 180`}
+        }
       }
-      return {n: "kick", v: `20 45`}
+      return {n: "kick", v: `15 ${input.side === 'l' ? 60 : -60}`}
     }
   },
   defendGoal(input) { // Защита ворот
@@ -50,7 +61,7 @@ const CTRL_HIGH = {
           input.newAction = "return"
         }
         else {
-          if (Math.abs(input.ball.angle) > 5)
+          if (Math.abs(input.ball.angle) > 10)
             return {n: "turn", v: input.ball.angle}
           if (input.ball.dist > 1)
             return {n: "dash", v: 110}

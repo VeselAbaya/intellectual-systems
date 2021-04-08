@@ -47,8 +47,8 @@ const CTRL_MIDDLE = {
     }
     if (Math.abs(input.flags[goal].angle) > 10)
       return {n: "turn", v: input.flags[goal].angle}
-    if (input.flags[goal].dist > 3)
-      return {n: "dash", v: 80}
+    if (input.flags[goal].dist >= 3)
+      return {n: "dash", v: 100}
     this.action = "seekBall"
     return null
   },

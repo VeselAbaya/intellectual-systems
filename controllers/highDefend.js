@@ -29,15 +29,28 @@ const CTRL_HIGH = {
           return {n: "kick", v: `30 ${input.goalOther.angle}`}
         return {n: "kick", v: `110 ${input.goalOther.angle}`}
       }
+      const close = input.closest(true)
+      const flag = input.flags[`fp${input.side === 'l' ? 'r' : 'l'}${Math.round(Math.random() * 10) % 2 ? 't' : 'b'}`];
+      if (flag || close[0]) {
+        return {n: "kick", v: `100 ${(flag || close[0]).angle}`}
+      }
+      if (input.goalOwn.dist > 25) {
+        this.last = "defend"
+        return {n: "rotate", v: '45'}
+      }
       return {n: "kick", v: `20 45`}
     }
   },
   defendGoal(input) { // Защита ворот
-    if(input.ball) {
+    if (input.ball) {
       const close = input.closest(true) // из моей команды
-      if ((close[0] && close[0].dist + 1 > input.ball.dist) ||
+      if ((close[0] && close[0].dist + 3 > input.ball.dist) ||
           (input.ball.dist < 20 && input.ball.dist > 1.2)) {
         this.last = "defend"
+        if (input.goalOther && input.goalOther.dist <= 80 ||
+            input.goalOwn && input.goalOwn.dist >= 20) {
+          input.newAction = "return"
+        }
         if (Math.abs(input.ball.angle) > 10)
           return {n: "turn", v: input.ball.angle}
         else if (input.ball.dist > 1)

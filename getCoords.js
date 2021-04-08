@@ -199,8 +199,8 @@ const FlagsCoords = {
 
 function isNearToFlag(flagStr, point) {
   return point &&
-         Math.abs(FlagsCoords[flagStr].x - point.x) <= 3 &&
-         Math.abs(FlagsCoords[flagStr].y - point.y) <= 3
+         Math.abs(FlagsCoords[flagStr].x - point.x) <= 2 &&
+         Math.abs(FlagsCoords[flagStr].y - point.y) <= 2
 }
 
 module.exports = {getDistanceForOtherPlayer, getAnswerForTwoFlags, checkAnswersForTwoFlags,

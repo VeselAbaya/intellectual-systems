@@ -46,10 +46,15 @@ class Agent {
   }
 
   analyzeEnv(msg, cmd, p) {
-    if (cmd === 'hear' && (p[2].includes('goal_l_') || p[2].includes('goal_r_'))) {
+    if (cmd === 'hear' && (p[2].includes('goal_l_') ||
+                           p[2].includes('goal_r_') ||
+                           p[2].includes('before_kick_off'))) {
       this.act = {n: "move", v: Positions[this.id]}
     }
-    if (cmd === 'hear' && (p[2].includes('fault')) && this.goalie) {
+    if (cmd === 'hear' && this.goalie &&
+        (p[2].includes('fault') ||
+         p[2].includes('kink_in') ||
+         p[2].includes('corner'))) {
       this.act = {n: "move", v: Positions[this.id]}
     }
     if (cmd === 'see' && this.run) {

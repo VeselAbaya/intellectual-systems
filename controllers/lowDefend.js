@@ -6,7 +6,8 @@ const CTRL_LOW = {
     this.taken.canKick = this.taken.ball && this.taken.ball.dist < 0.5;
     this.taken.canCatch =
       this.taken.ball && this.taken.ball.dist < 1.2 &&
-      this.taken.myPos && Math.abs(this.taken.myPos.x) > 32 && Math.abs(this.taken.myPos.y) < 18;
+      this.taken.myPos && Math.abs(this.taken.myPos.x) > 36.6 && Math.abs(this.taken.myPos.y) < 20;
+
     if (next) // Вызов следующего уровня
       return next.execute(this.taken, controllers.slice(1))
   }
